@@ -4,7 +4,13 @@ Six small HTTP APIs for a fictional sportsbook and casino, built with Next.js an
 
 > Ridgeline is a fictional company. All players, markets and keys are sandbox data.
 
-I built almost all of this from a terminal, with Claude Code doing the typing and the Postman CLI doing everything Postman. I never opened the Postman app to create a collection, write a test, or upload a spec. That's the part worth reading first, so it comes first.
+I built almost all of this from a terminal, with Claude Code doing the typing and the Postman CLI doing almost everything Postman. I never opened the Postman app to create a collection, write a test, or upload a spec. The workspace itself was created through the Postman MCP server, and `postman login` needed one trip to a browser. Full disclosure: I'm Field CTO at Postman, so weigh the "why this matters" section accordingly. I've tried to put the rough edges next to it.
+
+```bash
+npm run local            # keys, demo files, dev server on :4100, smoke test
+npm run test:postman     # all 9 collections through the Postman CLI
+postman workspace diff   # what a push would change in the workspace
+```
 
 ## Headless Postman, driven from Claude Code
 
@@ -19,11 +25,11 @@ gh repo create ... --private --push      # connect-git needs an `origin` remote
 postman workspace connect-git <workspace-id>
 postman workspace lint                   # governance rules + schema checks, locally
 postman workspace diff                   # what would change in the cloud, read-only
-postman workspace push --yes             # create/update only, never deletes
+postman workspace push --yes             # creates and updates; never deletes a whole spec, collection or environment
 postman collection run <collection.json> -e <env.json>
 ```
 
-`.postman/resources.yaml` is the whole binding. It lists the 7 specs, 9 collections and 2 environments by path and names the workspace they belong to. Those files are generated from one source (`lib/catalog.mjs` plus `lib/docs.mjs`) by `npm run build:postman`, with example responses captured by running the real handlers in-process. So the docs, the saved examples and the code can't drift apart without the next build catching it.
+`.postman/resources.yaml` is the whole binding. It lists the 7 specs, 9 collections and 2 environments by path and names the workspace they belong to. Those files are generated from one source (`lib/catalog.mjs` plus `lib/docs.mjs`) by `npm run build:postman`, with example responses captured by running the real handlers in-process. Schemas and saved examples are rebuilt from the running code every time, so they can't silently drift from it. The prose in `lib/docs.mjs` can still go stale, and that's what the tests are for: they fail when behavior and the documented contract disagree.
 
 ### What actually happened along the way
 
@@ -34,6 +40,7 @@ It didn't go perfectly, and the rough edges are a good picture of what this look
 - **Lint found 17 warnings in my generated files.** 15 were the governance rule that every operation should document a `5xx` response. The other 2 were a non-standard field I'd put in the environments. Fixed at the generator, re-ran, 0 warnings.
 - **`diff` caught a bug I'd never have spotted in the app.** The cloud rewrites `/` and `:` in request names, so `POST /v1/bets` came back as `POST -v1-bets`. Every push would have removed and re-added those requests. The diff showed it as a wall of `+`/`-` lines on the second push, so the generator now avoids those characters.
 - **Push writes cloud IDs back into the local files.** I changed the generator to keep them across rebuilds, so a push updates in place instead of churning IDs.
+- **An update replaces what's inside a collection.** "Never deletes" means whole entities. When the request names changed, the second push removed the old requests from inside each collection and added the new ones, which is correct, but it surprised me.
 - **One loose end:** after a clean push, `diff` still reports a few collections and the Passport environment as "modified" with no field-level detail. Re-pushing doesn't change anything. I haven't tracked down which field the cloud normalizes, so treat a "modified" on those as noise for now.
 
 ### The tests
@@ -72,11 +79,11 @@ Any agent can call an API. What changes with the CLI is that the agent's Postman
 
 - **Changes arrive as a diff in a PR.** When Claude Code adds a test or fixes a spec, you review it in the pull request like any other change. `postman workspace diff` shows exactly what will change in the cloud before anything is pushed.
 - **Governance runs before anything is published.** `postman workspace lint` applies the workspace's governance rules locally. The `5xx` warnings above were caught and fixed before they reached the workspace or the API Catalog.
-- **Tests travel with the code.** The collections are in the repo, so `npm run test:postman` (or the same command in CI) runs the identical suite on any machine, and the agent can run it to check its own work before it says it's done.
+- **Tests travel with the code.** The collections are in the repo, so `npm run test:postman` runs the identical suite on any machine, and the agent can run it to check its own work before it says it's done. CI would use the same command after `postman login --with-api-key`. There's no CI workflow in this repo yet.
 - **The agent works in the same loop as everyone else.** Every step above is a command a developer can run by hand. Nothing depends on the agent, on a GUI session, or on someone remembering to click "sync".
-- **`postman init` gives the agent context.** It installs Postman skills under `postman/skills/` and adds guidance to `AGENTS.md`, so the next coding agent in this repo knows how to discover, mock and test APIs here without being told.
+- **`postman init` gives the agent context.** It installs Postman skills under `postman/skills/` and adds guidance to `AGENTS.md`, so the next coding agent in this repo is pointed at instructions for discovering, mocking and testing APIs here. Whether it follows them is up to the agent. I haven't measured that.
 
-The one thing I'd flag: `push` treats local files as the source of truth and overwrites cloud copies. The default strategy only creates and updates, and `--push-strategy force-sync` also deletes, so keep that flag out of anything an agent runs unattended.
+What it costs: the git-native workspace commands are new (they were marked beta in the 1.29 CLI I started with), the auth state confused me once (`whoami` said signed in while `init` ran as a guest), and there's the unexplained drift above. And the one thing I'd flag: `push` treats local files as the source of truth and overwrites cloud copies. The default strategy only creates and updates, and `--push-strategy force-sync` also deletes, so keep that flag out of anything an agent runs unattended.
 
 ## Documentation
 
