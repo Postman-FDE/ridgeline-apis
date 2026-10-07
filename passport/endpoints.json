@@ -1,0 +1,124 @@
+{
+  "host": "your-project.vercel.app",
+  "note": "Register each endpoint in Passport (method + host + path are matched exactly). Bind the Authorization header slot to the secret reference. Or import specs/*.openapi.json via Add resources > API spec.",
+  "namespace": "Ridgeline Sandbox",
+  "endpoints": [
+    {
+      "namespace_resource_group": "Markets API",
+      "owner": "Team Trading",
+      "method": "GET",
+      "path": "/markets/v1/events",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_MARKETS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_MARKETS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Markets API",
+      "owner": "Team Trading",
+      "method": "GET",
+      "path": "/markets/v1/markets",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_MARKETS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_MARKETS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Wallet API",
+      "owner": "Team Payments",
+      "method": "POST",
+      "path": "/wallet/v1/wallet/balance",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_WALLET_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_WALLET_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Wallet API",
+      "owner": "Team Payments",
+      "method": "POST",
+      "path": "/wallet/v1/wallet/rewards/credit",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_WALLET_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_WALLET_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Promotions API",
+      "owner": "Team Promotions",
+      "method": "GET",
+      "path": "/promotions/v1/boosts",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PROMOTIONS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Promotions API",
+      "owner": "Team Promotions",
+      "method": "POST",
+      "path": "/promotions/v1/boosts",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PROMOTIONS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Promotions API",
+      "owner": "Team Promotions",
+      "method": "POST",
+      "path": "/promotions/v1/boosts/claim",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PROMOTIONS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Promotions API",
+      "owner": "Team Promotions",
+      "method": "GET",
+      "path": "/promotions/v1/boosts/claims",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PROMOTIONS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Player Limits API",
+      "owner": "Team Responsible Gaming",
+      "method": "POST",
+      "path": "/player-limits/v1/eligibility/check",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PLAYER_LIMITS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PLAYER_LIMITS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Player Limits API",
+      "owner": "Team Responsible Gaming",
+      "method": "POST",
+      "path": "/player-limits/v1/limits",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_PLAYER_LIMITS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_PLAYER_LIMITS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Bets API",
+      "owner": "Team Bet Platform",
+      "method": "POST",
+      "path": "/bets/v1/bets",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_BETS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_BETS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Bets API",
+      "owner": "Team Bet Platform",
+      "method": "GET",
+      "path": "/bets/v1/bets",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_BETS_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_BETS_KEY}}"
+    },
+    {
+      "namespace_resource_group": "Geo Compliance API",
+      "owner": "Team Compliance",
+      "method": "POST",
+      "path": "/geo-compliance/v1/location/check",
+      "secret_label": "Authorization",
+      "secret_reference": "RIDGELINE_GEO_COMPLIANCE_KEY",
+      "header_template": "Bearer {{vault:RIDGELINE_GEO_COMPLIANCE_KEY}}"
+    }
+  ]
+}

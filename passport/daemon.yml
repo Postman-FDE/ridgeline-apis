@@ -1,0 +1,7 @@
+# Copy to ~/.postman/access-proxy/daemon.yml after `passport setup`.
+# Without this file all traffic bypasses the proxy. Changes hot-reload.
+mode: allowlist
+strict: true            # non-listed hosts -> 502. Set false to let other traffic go direct.
+hosts:
+  - your-project.vercel.app   # the hosted sandbox (use your custom domain if you add one)
+  - api.anthropic.com         # optional: the agent's model key as a Passport reference too

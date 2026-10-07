@@ -1,0 +1,16 @@
+localResources:
+  collections:
+    - ../public/postman/bets.postman_collection.json
+    - ../public/postman/e2e-championship-boost.postman_collection.json
+    - ../public/postman/geo-compliance.postman_collection.json
+    - ../public/postman/markets.postman_collection.json
+    - ../public/postman/player-limits.postman_collection.json
+    - ../public/postman/promotions.postman_collection.json
+    - ../public/postman/sportsbook-app-contract.postman_collection.json
+    - ../public/postman/wallet.postman_collection.json
+  environments:
+    - ../public/postman/local.postman_environment.json
+    - ../public/postman/sandbox.postman_environment.json
+workspace:
+  id: 7897c56d-f973-4545-86af-0fe47e5ecff4
+  name: My Workspace

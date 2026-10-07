@@ -1,0 +1,200 @@
+{
+  "info": {
+    "_postman_id": "8f37ebdf-be7d-4485-b572-96924643587f",
+    "name": "Ridgeline · Bets API",
+    "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**Owner:** Team Bet Platform\n**Auth:** Bearer `{{bets_key}}`. In the Passport environment this is `{{vault:RIDGELINE_BETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /v1/bets · Place a bet",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bets/v1/bets",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bets",
+            "v1",
+            "bets"
+          ]
+        },
+        "description": "Place a bet",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bets/v1/bets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bets",
+                "v1",
+                "bets"
+              ]
+            },
+            "description": "Place a bet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/bets · List bets",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bets/v1/bets?player_id=P-1001",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bets",
+            "v1",
+            "bets"
+          ],
+          "query": [
+            {
+              "key": "player_id",
+              "value": "P-1001",
+              "description": "Filter by player."
+            }
+          ]
+        },
+        "description": "List bets"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bets/v1/bets?player_id=P-1001",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bets",
+                "v1",
+                "bets"
+              ],
+              "query": [
+                {
+                  "key": "player_id",
+                  "value": "P-1001",
+                  "description": "Filter by player."
+                }
+              ]
+            },
+            "description": "List bets"
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"bets\": [\n    {\n      \"bet_id\": \"BET-00003\",\n      \"player_id\": \"P-1001\",\n      \"status\": \"accepted\",\n      \"product\": \"sportsbook\",\n      \"selections\": [\n        {\n          \"market_id\": \"MKT-ML-001\",\n          \"outcome_id\": \"OUT-HAWKS\"\n        }\n      ],\n      \"stake_minor\": 1000,\n      \"potential_payout_minor\": 1770,\n      \"boost_id\": null,\n      \"rewards_earned_minor\": 0,\n      \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bets_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": "BST-00001"
+    }
+  ]
+}

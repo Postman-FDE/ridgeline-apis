@@ -1,0 +1,33 @@
+{
+  "name": "ridgeline-apis",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ridgeline API Sandbox: a set of fictional sportsbook/casino APIs with per-service bearer keys, built for Passport + API Catalog demos.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "next dev -p 4100",
+    "build": "next build",
+    "start": "next start -p 4100",
+    "keys": "node scripts/keys.mjs",
+    "smoke": "node --env-file-if-exists=.env.local scripts/smoke.mjs",
+    "build:postman": "node --env-file-if-exists=.env.local scripts/build-postman.mjs",
+    "grep": "bash scripts/grep-secrets.sh",
+    "demo:env": "node --env-file-if-exists=.env.local scripts/demo-env.mjs",
+    "reset": "bash -c 'set -a; [ -f .env.local ] && . ./.env.local; set +a; bash scripts/demo-reset.sh'",
+    "local": "bash scripts/local.sh",
+    "postman:push": "node --env-file-if-exists=.env.local scripts/postman-push.mjs"
+  },
+  "dependencies": {
+    "next": "^16.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "typescript": "^5.9.3"
+  }
+}

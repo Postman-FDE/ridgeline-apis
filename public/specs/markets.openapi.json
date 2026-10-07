@@ -1,0 +1,262 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ridgeline Markets API",
+    "version": "1.0.0",
+    "description": "Events and odds for the sportsbook. Read-only.\n\nOwner: Team Trading. Ridgeline is a fictional company; all data is sandbox data.",
+    "contact": {
+      "name": "Team Trading"
+    },
+    "x-owner": "Team Trading"
+  },
+  "servers": [
+    {
+      "url": "https://{host}/markets",
+      "description": "Hosted sandbox (route through Passport)",
+      "variables": {
+        "host": {
+          "default": "your-project.vercel.app"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:4100/markets",
+      "description": "Local (next dev)"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "markets",
+      "description": "Events and odds for the sportsbook. Read-only."
+    }
+  ],
+  "paths": {
+    "/v1/events": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "operationId": "markets_get_events",
+        "summary": "List events",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "events": [
+                    {
+                      "event_id": "EVT-FINAL-2026",
+                      "name": "Championship Final: Harbor Hawks vs. Summit Bears",
+                      "starts_at": "2026-10-25T00:30:00Z",
+                      "league": "Sandbox League"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/markets": {
+      "get": {
+        "tags": [
+          "markets"
+        ],
+        "operationId": "markets_get_markets",
+        "summary": "List markets with odds for an event",
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter by event.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "EVT-FINAL-2026"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "markets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "markets": [
+                    {
+                      "market_id": "MKT-ML-001",
+                      "event_id": "EVT-FINAL-2026",
+                      "type": "moneyline",
+                      "name": "Moneyline",
+                      "outcomes": [
+                        {
+                          "outcome_id": "OUT-HAWKS",
+                          "name": "Harbor Hawks",
+                          "american_odds": -130,
+                          "decimal_odds": 1.77
+                        },
+                        {
+                          "outcome_id": "OUT-BEARS",
+                          "name": "Summit Bears",
+                          "american_odds": 110,
+                          "decimal_odds": 2.1
+                        }
+                      ]
+                    },
+                    {
+                      "market_id": "MKT-TOT-001",
+                      "event_id": "EVT-FINAL-2026",
+                      "type": "total",
+                      "name": "Total Points 47.5",
+                      "outcomes": [
+                        {
+                          "outcome_id": "OUT-OVER",
+                          "name": "Over 47.5",
+                          "american_odds": -110,
+                          "decimal_odds": 1.91
+                        },
+                        {
+                          "outcome_id": "OUT-UNDER",
+                          "name": "Under 47.5",
+                          "american_odds": -110,
+                          "decimal_odds": 1.91
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use the Passport reference {{vault:RIDGELINE_MARKETS_KEY}}. Never a raw key."
+      }
+    }
+  }
+}

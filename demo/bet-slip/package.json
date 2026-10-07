@@ -1,0 +1,11 @@
+{
+  "name": "@ridgeline/bet-slip",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Ridgeline bet slip service (the repo the coding agent works in during the demo).",
+  "scripts": {
+    "start": "node --env-file=.env src/server.mjs",
+    "test": "node --test"
+  }
+}

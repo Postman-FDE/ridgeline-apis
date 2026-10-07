@@ -1,0 +1,1015 @@
+{
+  "info": {
+    "_postman_id": "e9940523-4551-4f5f-b5a4-297a927c7054",
+    "name": "Ridgeline · Championship Rewards Boost (E2E)",
+    "description": "The ticket, done right: create the boost, check **player-limits** and **geo-compliance** before every offer, claim only for eligible players, place a boosted bet in `stake_minor`, then assert the **end state**: no self-excluded or cool-off player holds a claim. Run in order with the Collection Runner. Each request uses its own service key via a Passport reference.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create the championship boost",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/promotions/v1/boosts",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "promotions",
+            "v1",
+            "boosts"
+          ]
+        },
+        "description": "Create a boost",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{promotions_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('boost created', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('boost_id', pm.response.json().boost_id);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/promotions/v1/boosts",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "promotions",
+                "v1",
+                "boosts"
+              ]
+            },
+            "description": "Create a boost",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{promotions_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T17:26:18.295Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "2. Eligibility: P-1001 (NJ, active)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "eligibility",
+            "check"
+          ]
+        },
+        "description": "Check whether a player may wager / receive promotions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{player_limits_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('P-1001 may receive promotions', () => pm.expect(pm.response.json().may_receive_promotions).to.be.true);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "eligibility",
+                "check"
+              ]
+            },
+            "description": "Check whether a player may wager / receive promotions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{player_limits_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "3. Eligibility: P-1003 (self-excluded) → do not offer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "eligibility",
+            "check"
+          ]
+        },
+        "description": "Check whether a player may wager / receive promotions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{player_limits_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('P-1003 is self-excluded', () => pm.expect(r.reasons).to.include('SELF_EXCLUDED'));",
+              "pm.test('P-1003 must NOT receive promotions', () => pm.expect(r.may_receive_promotions).to.be.false);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "eligibility",
+                "check"
+              ]
+            },
+            "description": "Check whether a player may wager / receive promotions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{player_limits_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "4. Eligibility: P-1005 (cool-off) → do not offer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "eligibility",
+            "check"
+          ]
+        },
+        "description": "Check whether a player may wager / receive promotions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{player_limits_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('P-1005 cool-off blocks promotions', () => pm.expect(pm.response.json().may_receive_promotions).to.be.false);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "eligibility",
+                "check"
+              ]
+            },
+            "description": "Check whether a player may wager / receive promotions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{player_limits_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "5. Geo: P-1004 casino in NY → sportsbook only",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/geo-compliance/v1/location/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "geo-compliance",
+            "v1",
+            "location",
+            "check"
+          ]
+        },
+        "description": "Check product availability for a player's location",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{geo_compliance_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('casino not offered in NY', () => pm.expect(pm.response.json().allowed).to.be.false);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/geo-compliance/v1/location/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "geo-compliance",
+                "v1",
+                "location",
+                "check"
+              ]
+            },
+            "description": "Check product availability for a player's location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{geo_compliance_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "6. Claim boost for eligible P-1001",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/promotions/v1/boosts/claim",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "promotions",
+            "v1",
+            "boosts",
+            "claim"
+          ]
+        },
+        "description": "Claim a boost for a player (caller must check eligibility first)",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{promotions_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('claimed', () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/promotions/v1/boosts/claim",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "promotions",
+                "v1",
+                "boosts",
+                "claim"
+              ]
+            },
+            "description": "Claim a boost for a player (caller must check eligibility first)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{promotions_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "7. Place boosted bet (stake_minor = 1000)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bets/v1/bets",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bets",
+            "v1",
+            "bets"
+          ]
+        },
+        "description": "Place a bet",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bets_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const b = pm.response.json();",
+              "pm.test('bet accepted', () => pm.response.to.have.status(201));",
+              "pm.test('stake is integer cents', () => pm.expect(Number.isInteger(b.stake_minor)).to.be.true);",
+              "pm.test('Rewards earned = 10% of stake', () => pm.expect(b.rewards_earned_minor).to.eql(100));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bets/v1/bets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bets",
+                "v1",
+                "bets"
+              ]
+            },
+            "description": "Place a bet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bets_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "8. END STATE: no protected player holds a claim",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/promotions/v1/boosts/claims?boost_id={{boost_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "promotions",
+            "v1",
+            "boosts",
+            "claims"
+          ],
+          "query": [
+            {
+              "key": "boost_id",
+              "value": "{{boost_id}}",
+              "description": "Filter by boost."
+            }
+          ]
+        },
+        "description": "List claims for a boost",
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{promotions_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ids = pm.response.json().claims.map(c => c.player_id);",
+              "pm.test('END STATE: no claim for self-excluded P-1003', () => pm.expect(ids).to.not.include('P-1003'));",
+              "pm.test('END STATE: no claim for cool-off P-1005', () => pm.expect(ids).to.not.include('P-1005'));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/promotions/v1/boosts/claims?boost_id={{boost_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "promotions",
+                "v1",
+                "boosts",
+                "claims"
+              ],
+              "query": [
+                {
+                  "key": "boost_id",
+                  "value": "{{boost_id}}",
+                  "description": "Filter by boost."
+                }
+              ]
+            },
+            "description": "List claims for a boost",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{promotions_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "9. END STATE: Rewards credited to P-1001",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/wallet/v1/wallet/balance",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "wallet",
+            "v1",
+            "wallet",
+            "balance"
+          ]
+        },
+        "description": "Get a player balance",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{wallet_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Rewards credited', () => pm.expect(pm.response.json().rewards_minor).to.be.above(1200));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/v1/wallet/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wallet",
+                "v1",
+                "wallet",
+                "balance"
+              ]
+            },
+            "description": "Get a player balance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{wallet_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": ""
+    }
+  ]
+}

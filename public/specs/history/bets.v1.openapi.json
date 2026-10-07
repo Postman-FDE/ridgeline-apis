@@ -1,0 +1,322 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ridgeline Bets API (v1, deprecated)",
+    "version": "1.4.0",
+    "description": "DEPRECATED. Superseded by v2 (2026-07). `stake` was a decimal dollar amount. Kept for spec history only.",
+    "contact": {
+      "name": "Team Bet Platform"
+    },
+    "x-owner": "Team Bet Platform"
+  },
+  "servers": [
+    {
+      "url": "https://{host}/bets",
+      "description": "Hosted sandbox (route through Passport)",
+      "variables": {
+        "host": {
+          "default": "your-project.vercel.app"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:4100/bets",
+      "description": "Local (next dev)"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "bets",
+      "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer."
+    }
+  ],
+  "paths": {
+    "/v1/bets": {
+      "post": {
+        "tags": [
+          "bets"
+        ],
+        "operationId": "bets_post_bets",
+        "summary": "Place a bet",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "bet_id",
+                    "status",
+                    "stake_minor",
+                    "potential_payout_minor",
+                    "rewards_earned_minor"
+                  ],
+                  "properties": {
+                    "bet_id": {
+                      "type": "string"
+                    },
+                    "player_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "accepted"
+                      ]
+                    },
+                    "product": {
+                      "type": "string",
+                      "enum": [
+                        "sportsbook",
+                        "casino"
+                      ]
+                    },
+                    "stake_minor": {
+                      "type": "integer"
+                    },
+                    "potential_payout_minor": {
+                      "type": "integer"
+                    },
+                    "boost_id": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "rewards_earned_minor": {
+                      "type": "integer"
+                    },
+                    "placed_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Player not eligible or product not available in state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "player_id",
+                  "selections",
+                  "stake"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "player_id": {
+                    "type": "string"
+                  },
+                  "product": {
+                    "type": "string",
+                    "enum": [
+                      "sportsbook",
+                      "casino"
+                    ]
+                  },
+                  "selections": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "market_id",
+                        "outcome_id"
+                      ],
+                      "properties": {
+                        "market_id": {
+                          "type": "string"
+                        },
+                        "outcome_id": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "boost_id": {
+                    "type": "string"
+                  },
+                  "stake": {
+                    "type": "number",
+                    "format": "double",
+                    "description": "Stake in dollars, e.g. 10.00."
+                  }
+                }
+              },
+              "example": {
+                "player_id": "P-1001",
+                "selections": [
+                  {
+                    "market_id": "MKT-ML-001",
+                    "outcome_id": "OUT-HAWKS"
+                  }
+                ],
+                "stake": 10
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "bets"
+        ],
+        "operationId": "bets_get_bets",
+        "summary": "List bets",
+        "parameters": [
+          {
+            "name": "player_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter by player.",
+            "schema": {
+              "type": "string"
+            },
+            "example": "P-1001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use the Passport reference {{vault:RIDGELINE_BETS_KEY}}. Never a raw key."
+      }
+    }
+  }
+}

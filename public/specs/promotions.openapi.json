@@ -1,0 +1,430 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ridgeline Promotions API",
+    "version": "1.0.0",
+    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\nOwner: Team Promotions. Ridgeline is a fictional company; all data is sandbox data.",
+    "contact": {
+      "name": "Team Promotions"
+    },
+    "x-owner": "Team Promotions"
+  },
+  "servers": [
+    {
+      "url": "https://{host}/promotions",
+      "description": "Hosted sandbox (route through Passport)",
+      "variables": {
+        "host": {
+          "default": "your-project.vercel.app"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:4100/promotions",
+      "description": "Local (next dev)"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "promotions",
+      "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost."
+    }
+  ],
+  "paths": {
+    "/v1/boosts": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "operationId": "promotions_get_boosts",
+        "summary": "List boosts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "boosts": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "operationId": "promotions_post_boosts",
+        "summary": "Create a boost",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "boost_id": "BST-00001",
+                  "name": "Championship Rewards Boost",
+                  "market_id": "MKT-ML-001",
+                  "profit_boost_pct": 25,
+                  "rewards_back_pct": 10,
+                  "products": [
+                    "sportsbook",
+                    "casino"
+                  ],
+                  "status": "active",
+                  "created_at": "2026-10-07T17:26:18.295Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "market_id",
+                  "profit_boost_pct",
+                  "rewards_back_pct",
+                  "products"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "market_id": {
+                    "type": "string"
+                  },
+                  "profit_boost_pct": {
+                    "type": "integer"
+                  },
+                  "rewards_back_pct": {
+                    "type": "integer"
+                  },
+                  "products": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "sportsbook",
+                        "casino"
+                      ]
+                    }
+                  }
+                }
+              },
+              "example": {
+                "name": "Championship Rewards Boost",
+                "market_id": "MKT-ML-001",
+                "profit_boost_pct": 25,
+                "rewards_back_pct": 10,
+                "products": [
+                  "sportsbook",
+                  "casino"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boosts/claim": {
+      "post": {
+        "tags": [
+          "promotions"
+        ],
+        "operationId": "promotions_post_boosts_claim",
+        "summary": "Claim a boost for a player (caller must check eligibility first)",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "claim_id": "CLM-00002",
+                  "boost_id": "BST-00001",
+                  "player_id": "P-1001",
+                  "claimed_at": "2026-10-07T17:26:18.296Z"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "boost_id",
+                  "player_id"
+                ],
+                "properties": {
+                  "boost_id": {
+                    "type": "string"
+                  },
+                  "player_id": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "boost_id": "BST-00001",
+                "player_id": "P-1001"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/boosts/claims": {
+      "get": {
+        "tags": [
+          "promotions"
+        ],
+        "operationId": "promotions_get_boosts_claims",
+        "summary": "List claims for a boost",
+        "parameters": [
+          {
+            "name": "boost_id",
+            "in": "query",
+            "required": false,
+            "description": "Filter by boost.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "claims": [
+                    {
+                      "claim_id": "CLM-00002",
+                      "boost_id": "BST-00001",
+                      "player_id": "P-1001",
+                      "claimed_at": "2026-10-07T17:26:18.296Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use the Passport reference {{vault:RIDGELINE_PROMOTIONS_KEY}}. Never a raw key."
+      }
+    }
+  }
+}

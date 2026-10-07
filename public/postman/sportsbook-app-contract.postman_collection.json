@@ -1,0 +1,342 @@
+{
+  "info": {
+    "_postman_id": "3b6e4a7d-ce57-4b06-ad52-28878502088f",
+    "name": "Ridgeline · sportsbook-app consumer contract",
+    "description": "Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer's own tests but breaks these fails the build.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. bets: response shape the app renders",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bets/v1/bets",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bets",
+            "v1",
+            "bets"
+          ]
+        },
+        "description": "Place a bet",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bets_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('bet response matches sportsbook-app contract', () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"required\":[\"bet_id\",\"status\",\"stake_minor\",\"potential_payout_minor\",\"rewards_earned_minor\"],\"properties\":{\"bet_id\":{\"type\":\"string\"},\"player_id\":{\"type\":\"string\"},\"status\":{\"type\":\"string\",\"enum\":[\"accepted\"]},\"product\":{\"type\":\"string\",\"enum\":[\"sportsbook\",\"casino\"]},\"stake_minor\":{\"type\":\"integer\"},\"potential_payout_minor\":{\"type\":\"integer\"},\"boost_id\":{\"type\":[\"string\",\"null\"]},\"rewards_earned_minor\":{\"type\":\"integer\"},\"placed_at\":{\"type\":\"string\",\"format\":\"date-time\"}}}));",
+              "pm.test('stake echoed in cents', () => pm.expect(pm.response.json().stake_minor).to.eql(500));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bets/v1/bets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bets",
+                "v1",
+                "bets"
+              ]
+            },
+            "description": "Place a bet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bets_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "2. bets: legacy `stake` is rejected loudly",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/bets/v1/bets",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "bets",
+            "v1",
+            "bets"
+          ]
+        },
+        "description": "Place a bet",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bets_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('legacy `stake` is rejected, not silently accepted', () => pm.response.to.have.status(400));",
+              "pm.test('error names the replacement field', () => pm.expect(pm.response.json().replacement).to.eql('stake_minor'));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bets/v1/bets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "bets",
+                "v1",
+                "bets"
+              ]
+            },
+            "description": "Place a bet",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bets_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "3. player-limits: fields the app gates offers on",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "eligibility",
+            "check"
+          ]
+        },
+        "description": "Check whether a player may wager / receive promotions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{player_limits_key}}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('eligibility response matches contract', () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"required\":[\"player_id\",\"eligible\",\"reasons\",\"may_receive_promotions\"],\"properties\":{\"player_id\":{\"type\":\"string\"},\"product\":{\"type\":\"string\",\"enum\":[\"sportsbook\",\"casino\"]},\"eligible\":{\"type\":\"boolean\"},\"reasons\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"SELF_EXCLUDED\",\"COOL_OFF\",\"DAILY_WAGER_LIMIT\"]}},\"may_receive_promotions\":{\"type\":\"boolean\"},\"remaining_daily_wager_minor\":{\"type\":\"integer\"},\"checked_at\":{\"type\":\"string\",\"format\":\"date-time\"}}}));",
+              "pm.test('may_receive_promotions present for self-excluded', () => pm.expect(pm.response.json().may_receive_promotions).to.be.false);"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "eligibility",
+                "check"
+              ]
+            },
+            "description": "Check whether a player may wager / receive promotions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{player_limits_key}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+demo/
+passport/
+docs/
+.env*
+!.env.example

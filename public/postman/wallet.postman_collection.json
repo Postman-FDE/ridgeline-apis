@@ -1,0 +1,210 @@
+{
+  "info": {
+    "_postman_id": "327a023b-77b4-43a1-99d5-359d7b7057b8",
+    "name": "Ridgeline · Wallet API",
+    "description": "Player balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents).\n\n**Owner:** Team Payments\n**Auth:** Bearer `{{wallet_key}}`. In the Passport environment this is `{{vault:RIDGELINE_WALLET_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /v1/wallet/balance · Get a player balance",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/wallet/v1/wallet/balance",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "wallet",
+            "v1",
+            "wallet",
+            "balance"
+          ]
+        },
+        "description": "Get a player balance",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/v1/wallet/balance",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wallet",
+                "v1",
+                "wallet",
+                "balance"
+              ]
+            },
+            "description": "Get a player balance",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "POST /v1/wallet/rewards/credit · Credit rewards to a player (idempotent)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/wallet/v1/wallet/rewards/credit",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "wallet",
+            "v1",
+            "wallet",
+            "rewards",
+            "credit"
+          ]
+        },
+        "description": "Credit rewards to a player (idempotent)",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"amount_minor\": 100,\n  \"reason\": \"Championship Rewards Boost\",\n  \"idempotency_key\": \"demo-credit-001\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/wallet/v1/wallet/rewards/credit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "wallet",
+                "v1",
+                "wallet",
+                "rewards",
+                "credit"
+              ]
+            },
+            "description": "Credit rewards to a player (idempotent)",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1001\",\n  \"amount_minor\": 100,\n  \"reason\": \"Championship Rewards Boost\",\n  \"idempotency_key\": \"demo-credit-001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 201,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1001\",\n  \"rewards_minor\": 1300,\n  \"idempotency_key\": \"demo-credit-001\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{wallet_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": "BST-00001"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://astropods.com/schema/package.json
+# boost-ops: a promotions-operations agent for the fictional Ridgeline sportsbook/casino.
+# It calls six Ridgeline Sandbox APIs. Every key it receives is a Passport reference ({{vault:...}}),
+# never a raw secret. The Passport Secure Access Proxy resolves it at call time.
+spec: blueprint/v1
+name: "ridgeline-boost-ops"
+
+providers:
+  ridgeline:
+    scope: [integrations]
+    variables:
+      # Env vars are injected as RIDGELINE_<NAME>.
+      - name: BASE_URL
+        description: Ridgeline Sandbox API host (the hosted sandbox), e.g. https://your-project.vercel.app
+        datatype: string
+      - name: MARKETS_KEY
+        description: Passport reference for the markets API, e.g. {{vault:RIDGELINE_MARKETS_KEY}}
+        datatype: string
+        secret: true
+      - name: WALLET_KEY
+        description: Passport reference for the wallet API
+        datatype: string
+        secret: true
+      - name: PROMOTIONS_KEY
+        description: Passport reference for the promotions API
+        datatype: string
+        secret: true
+      - name: PLAYER_LIMITS_KEY
+        description: Passport reference for the player-limits (responsible gaming) API
+        datatype: string
+        secret: true
+      - name: BETS_KEY
+        description: Passport reference for the bets API
+        datatype: string
+        secret: true
+      - name: GEO_COMPLIANCE_KEY
+        description: Passport reference for the geo-compliance API
+        datatype: string
+        secret: true
+
+agent:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  inputs:
+    - name: PASSPORT_PROXY_URL
+      description: "Passport Secure Access Proxy for outbound API calls. Local dev: http://host.docker.internal:8081 (the passport daemon). Leave empty to call APIs directly."
+      datatype: string
+      optional: true
+    - name: RIDGELINE_AGENT_MODEL
+      description: Model id for the agent
+      datatype: string
+      default: anthropic/claude-sonnet-4-5
+      optional: true
+
+models:
+  anthropic:
+    provider: anthropic
+
+integrations:
+  ridgeline:
+    provider: ridgeline
+
+dev:
+  interfaces:
+    messaging:
+      adapters: [web]

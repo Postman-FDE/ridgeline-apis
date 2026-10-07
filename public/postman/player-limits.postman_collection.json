@@ -1,0 +1,206 @@
+{
+  "info": {
+    "_postman_id": "f697c2aa-1d83-4df3-b718-90f04cf2d013",
+    "name": "Ridgeline · Player Limits API",
+    "description": "Responsible-gaming eligibility: self-exclusion, cool-off and daily wager limits. **The single source of truth for player protection. Never reimplement this logic in a caller.** Self-excluded and cool-off players must not receive promotional offers (`may_receive_promotions: false`).\n\n**Owner:** Team Responsible Gaming\n**Auth:** Bearer `{{player_limits_key}}`. In the Passport environment this is `{{vault:RIDGELINE_PLAYER_LIMITS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /v1/eligibility/check · Check whether a player may wager / receive promotions",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "eligibility",
+            "check"
+          ]
+        },
+        "description": "Check whether a player may wager / receive promotions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/eligibility/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "eligibility",
+                "check"
+              ]
+            },
+            "description": "Check whether a player may wager / receive promotions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "POST /v1/limits · Get a player's limits and status",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/player-limits/v1/limits",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "player-limits",
+            "v1",
+            "limits"
+          ]
+        },
+        "description": "Get a player's limits and status",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1002\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/player-limits/v1/limits",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "player-limits",
+                "v1",
+                "limits"
+              ]
+            },
+            "description": "Get a player's limits and status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1002\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1002\",\n  \"status\": \"active\",\n  \"daily_wager_limit_minor\": 5000,\n  \"wagered_today_minor\": 3000\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{player_limits_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": "BST-00001"
+    }
+  ]
+}

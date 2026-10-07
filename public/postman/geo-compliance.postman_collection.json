@@ -1,0 +1,117 @@
+{
+  "info": {
+    "_postman_id": "d200bd29-8a01-4775-a631-03aabd2bc790",
+    "name": "Ridgeline · Geo Compliance API",
+    "description": "Which products a player may access in their state. Casino is available in NJ, PA and MI only (sandbox data).\n\n**Owner:** Team Compliance\n**Auth:** Bearer `{{geo_compliance_key}}`. In the Passport environment this is `{{vault:RIDGELINE_GEO_COMPLIANCE_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST /v1/location/check · Check product availability for a player's location",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/geo-compliance/v1/location/check",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "geo-compliance",
+            "v1",
+            "location",
+            "check"
+          ]
+        },
+        "description": "Check product availability for a player's location",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/geo-compliance/v1/location/check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "geo-compliance",
+                "v1",
+                "location",
+                "check"
+              ]
+            },
+            "description": "Check product availability for a player's location",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{geo_compliance_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": "BST-00001"
+    }
+  ]
+}

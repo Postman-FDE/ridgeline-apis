@@ -1,0 +1,251 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Ridgeline Wallet API",
+    "version": "1.0.0",
+    "description": "Player balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents).\n\nOwner: Team Payments. Ridgeline is a fictional company; all data is sandbox data.",
+    "contact": {
+      "name": "Team Payments"
+    },
+    "x-owner": "Team Payments"
+  },
+  "servers": [
+    {
+      "url": "https://{host}/wallet",
+      "description": "Hosted sandbox (route through Passport)",
+      "variables": {
+        "host": {
+          "default": "your-project.vercel.app"
+        }
+      }
+    },
+    {
+      "url": "http://localhost:4100/wallet",
+      "description": "Local (next dev)"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "wallet",
+      "description": "Player balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents)."
+    }
+  ],
+  "paths": {
+    "/v1/wallet/balance": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "operationId": "wallet_post_wallet_balance",
+        "summary": "Get a player balance",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "player_id": "P-1001",
+                  "cash_minor": 25000,
+                  "bonus_minor": 0,
+                  "rewards_minor": 1200
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "player_id"
+                ],
+                "properties": {
+                  "player_id": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "player_id": "P-1001"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/wallet/rewards/credit": {
+      "post": {
+        "tags": [
+          "wallet"
+        ],
+        "operationId": "wallet_post_wallet_rewards_credit",
+        "summary": "Credit rewards to a player (idempotent)",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "player_id": "P-1001",
+                  "rewards_minor": 1300,
+                  "idempotency_key": "demo-credit-001"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "player_id",
+                  "amount_minor",
+                  "reason",
+                  "idempotency_key"
+                ],
+                "properties": {
+                  "player_id": {
+                    "type": "string"
+                  },
+                  "amount_minor": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Rewards credit in cents."
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "idempotency_key": {
+                    "type": "string"
+                  }
+                }
+              },
+              "example": {
+                "player_id": "P-1001",
+                "amount_minor": 100,
+                "reason": "Championship Rewards Boost",
+                "idempotency_key": "demo-credit-001"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use the Passport reference {{vault:RIDGELINE_WALLET_KEY}}. Never a raw key."
+      }
+    }
+  }
+}

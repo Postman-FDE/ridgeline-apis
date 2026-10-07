@@ -1,0 +1,182 @@
+{
+  "info": {
+    "_postman_id": "e4214280-9ffc-4567-8815-7b9a529fae96",
+    "name": "Ridgeline · Markets API",
+    "description": "Events and odds for the sportsbook. Read-only.\n\n**Owner:** Team Trading\n**Auth:** Bearer `{{markets_key}}`. In the Passport environment this is `{{vault:RIDGELINE_MARKETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /v1/events · List events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/markets/v1/events",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "markets",
+            "v1",
+            "events"
+          ]
+        },
+        "description": "List events"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/markets/v1/events",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "markets",
+                "v1",
+                "events"
+              ]
+            },
+            "description": "List events"
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"events\": [\n    {\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"name\": \"Championship Final: Harbor Hawks vs. Summit Bears\",\n      \"starts_at\": \"2026-10-25T00:30:00Z\",\n      \"league\": \"Sandbox League\"\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    },
+    {
+      "name": "GET /v1/markets · List markets with odds for an event",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/markets/v1/markets?event_id=EVT-FINAL-2026",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "markets",
+            "v1",
+            "markets"
+          ],
+          "query": [
+            {
+              "key": "event_id",
+              "value": "EVT-FINAL-2026",
+              "description": "Filter by event."
+            }
+          ]
+        },
+        "description": "List markets with odds for an event"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+            ]
+          }
+        }
+      ],
+      "response": [
+        {
+          "name": "Example (captured from the handlers)",
+          "originalRequest": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/markets/v1/markets?event_id=EVT-FINAL-2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "markets",
+                "v1",
+                "markets"
+              ],
+              "query": [
+                {
+                  "key": "event_id",
+                  "value": "EVT-FINAL-2026",
+                  "description": "Filter by event."
+                }
+              ]
+            },
+            "description": "List markets with odds for an event"
+          },
+          "status": "OK",
+          "code": 200,
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": "{\n  \"markets\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"moneyline\",\n      \"name\": \"Moneyline\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-HAWKS\",\n          \"name\": \"Harbor Hawks\",\n          \"american_odds\": -130,\n          \"decimal_odds\": 1.77\n        },\n        {\n          \"outcome_id\": \"OUT-BEARS\",\n          \"name\": \"Summit Bears\",\n          \"american_odds\": 110,\n          \"decimal_odds\": 2.1\n        }\n      ]\n    },\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"total\",\n      \"name\": \"Total Points 47.5\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-OVER\",\n          \"name\": \"Over 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        },\n        {\n          \"outcome_id\": \"OUT-UNDER\",\n          \"name\": \"Under 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        }\n      ]\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json"
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{markets_key}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "boost_id",
+      "value": "BST-00001"
+    }
+  ]
+}
