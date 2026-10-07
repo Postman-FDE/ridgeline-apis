@@ -81,6 +81,8 @@ Nobody is handed a raw key. You request access in **Postman Passport** and get a
 | **Ridgeline · sportsbook-app consumer contract** | 3 | 6 | See the response shape a consumer depends on, and that the removed `stake` field fails loudly |
 | **Ridgeline · Markets, Wallet, Promotions, Player Limits, Bets, Geo Compliance** | 13 | 43 | Explore one API. Every request checks status, response time, content type and its documented schema |
 
+Every collection is documented on its **Docs** tab: a run guide, the environments to use, and for each API a **Try it** section with a `curl` to the mock and a typed SDK snippet. In the test suite, every request lists its checks, and the business-rule tests say why they exist.
+
 ### Business rules the tests enforce
 
 - `P-1003` is self-excluded, so `may_receive_promotions` must be `false`.

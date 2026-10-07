@@ -6,6 +6,14 @@ Six small HTTP APIs for a fictional sportsbook and casino, built with Next.js an
 
 I built almost all of this from a terminal, with Claude Code doing the typing and the Postman CLI doing almost everything Postman. I never opened the Postman app to create a collection, write a test, or upload a spec. The workspace itself was created through the Postman MCP server, and `postman login` needed one trip to a browser. Full disclosure: I'm Field CTO at Postman, so weigh the "why this matters" section accordingly. I've tried to put the rough edges next to it.
 
+No setup at all: the public mock answers every endpoint with its documented example.
+
+```bash
+curl -s https://ridgeline-sandbox.mock.postman.postman.dev/markets/v1/events
+```
+
+Running it yourself:
+
 ```bash
 npm run local            # keys, demo files, dev server on :4100, smoke test
 npm run test:postman     # all 9 collections through the Postman CLI
@@ -45,7 +53,7 @@ It didn't go perfectly, and the rough edges are a good picture of what this look
 
 ### The tests
 
-Claude Code wrote the tests into the generator, so they're regenerated with the collections rather than hand-edited in the app.
+Claude Code wrote the tests into the generator, so they're regenerated with the collections rather than hand-edited in the app. Each request's docs list its checks, and the business-rule tests say why they exist.
 
 | Collection | Requests | Assertions | What it checks |
 |---|---|---|---|
@@ -92,7 +100,8 @@ What it costs: the git-native workspace commands are new (they were marked beta 
 | **Mock server** | `npm run mock:build`, then `postman mock push` / `deploy` | One public mock for all six APIs at [ridgeline-sandbox.mock.postman.postman.dev](https://ridgeline-sandbox.mock.postman.postman.dev), generated from the collections' saved examples. Use the **Ridgeline Sandbox · Mock** environment |
 | **AI readiness** | `npm run ai-readiness` | Scores every spec and collection, writes [`docs/ai-readiness.md`](docs/ai-readiness.md), and fails below 75. Specs: Markets 95, the rest 80. Collections: 75 to 85 |
 | **SDKs** | `npm run sdk` (add `python go ...` for more languages) | Typed TypeScript SDKs for all six APIs in `sdks/`. Tested against the local API: a bet places, and a self-excluded player comes back as a typed `403` |
-| **Workspace overview** | `postman workspace push` | [`postman/documents/WORKSPACE-README.md`](postman/documents/WORKSPACE-README.md) is the workspace's overview page |
+| **Workspace overview** | `postman workspace push` | [`postman/documents/WORKSPACE-README.md`](postman/documents/WORKSPACE-README.md) is the workspace's overview page, versioned in git like everything else |
+| **Collection docs** | `npm run build:postman` | Every collection, folder and request is documented, from run guides and SDK snippets to why each business-rule test exists. See [Documentation](#documentation) |
 
 Two findings worth knowing:
 
@@ -101,14 +110,25 @@ Two findings worth knowing:
 
 ## Documentation
 
-Every API is documented in its OpenAPI spec and in its Postman collection, generated from `lib/docs.mjs`:
+All of it is generated from one file, `lib/docs.mjs`, so the specs, the collections and the SDK READMEs say the same thing.
+
+**In the OpenAPI specs** (`public/specs/`, served at `/specs/*`):
 
 - An overview per API: what it's for, the owner, its consumers, and its rules. For example, promotions doesn't check eligibility, so callers must.
-- Authentication with Passport references, and shared conventions (integer cents, exact paths, error shape).
-- A description for every operation, with an error table and an example for each documented error.
-- Descriptions on request and response fields.
+- Authentication with Passport references, how to get access (catalog, Passport request, owner approval), and shared conventions (integer cents, exact paths, error shape).
+- A description for every operation, with an error table that says, for each code, whether it's recoverable and what a client or agent should do. `player_not_eligible` means stop, not retry.
+- Descriptions on request and response fields, and an example for every documented error.
 
-The specs are served at `/specs/*` and the collections at `/postman/*` on the deployed site, and both are pushed to the workspace.
+**In the Postman collections** (`public/postman/`, served at `/postman/*`, and on each collection's Docs tab in the workspace):
+
+| Collection | What its docs add |
+|---|---|
+| The six API collections | The spec overview, plus a **Try it** section (a `curl` to the mock, a typed SDK snippet using that API's real method names), the environments table, and how to run it |
+| Ridgeline · Test Suite | A folder-by-folder table of what each part proves. Every folder names its API and owner. All 56 requests list their checks, and the 11 that guard business rules also say why the test exists |
+| Championship Rewards Boost (E2E) | The flow as a step table, and why the end-state check matters: every call can return 200 while the campaign is still wrong. Each step explains its purpose before the endpoint docs |
+| sportsbook-app consumer contract | What a consumer-driven contract is, who owns it, what each request protects, and the CI command |
+
+**In the workspace overview** ([`postman/documents/WORKSPACE-README.md`](postman/documents/WORKSPACE-README.md)): a start-here guide, the APIs, test players, auth rules, the mock server, AI readiness, SDKs, and how the workspace was built.
 
 ## APIs
 
