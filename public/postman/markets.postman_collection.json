@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "5d14fa8f-6b6d-46e3-819f-aabf69d21267",
+    "_postman_id": "d839a4d8-4037-4d69-8c5e-c54acbe5f8cf",
     "name": "Ridgeline · Markets API",
-    "description": "Events and odds for the sportsbook. Read-only.\n\n**Owner:** Team Trading\n**Auth:** Bearer `{{markets_key}}`. In the Passport environment this is `{{vault:RIDGELINE_MARKETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "description": "Events and odds for the sportsbook. Read-only.\n\nRead-only catalog of **events** and **markets with odds**. Use it to build a bet slip and to find the `market_id` / `outcome_id` that bets and promotions need.\n\n**Owner:** Team Trading · **Consumers:** bet-slip, sportsbook-app, promotions tooling\n\nThe sandbox has one event, `EVT-FINAL-2026` (Championship Final: Harbor Hawks vs. Summit Bears), with a moneyline (`MKT-ML-001`) and a total (`MKT-TOT-001`).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{markets_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_MARKETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -27,7 +27,7 @@
             "events"
           ]
         },
-        "description": "List events"
+        "description": "List upcoming events."
       },
       "event": [
         {
@@ -65,7 +65,7 @@
                 "events"
               ]
             },
-            "description": "List events"
+            "description": "List upcoming events."
           },
           "status": "OK",
           "code": 200,
@@ -77,10 +77,10 @@
           ],
           "body": "{\n  \"events\": [\n    {\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"name\": \"Championship Final: Harbor Hawks vs. Summit Bears\",\n      \"starts_at\": \"2026-10-25T00:30:00Z\",\n      \"league\": \"Sandbox League\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "40727388-cd56-4566-baee-fd9c02689687"
+          "id": "126fe3f6-1fb4-43a0-84fa-c6ffc9921178"
         }
       ],
-      "id": "8ab3b190-0d3b-4719-b7de-d8ab58a70858"
+      "id": "a12aa213-6e45-44ee-b28b-c29c7a1edcab"
     },
     {
       "name": "List markets with odds for an event",
@@ -110,7 +110,7 @@
             }
           ]
         },
-        "description": "List markets with odds for an event"
+        "description": "List markets with their outcomes and odds. Filter with `event_id`. American and decimal odds are both returned. Use `decimal_odds` for payout math (`payout = stake × decimal_odds`). An unknown `event_id` returns an empty list, not an error."
       },
       "event": [
         {
@@ -155,7 +155,7 @@
                 }
               ]
             },
-            "description": "List markets with odds for an event"
+            "description": "List markets with their outcomes and odds. Filter with `event_id`. American and decimal odds are both returned. Use `decimal_odds` for payout math (`payout = stake × decimal_odds`). An unknown `event_id` returns an empty list, not an error."
           },
           "status": "OK",
           "code": 200,
@@ -167,10 +167,10 @@
           ],
           "body": "{\n  \"markets\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"moneyline\",\n      \"name\": \"Moneyline\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-HAWKS\",\n          \"name\": \"Harbor Hawks\",\n          \"american_odds\": -130,\n          \"decimal_odds\": 1.77\n        },\n        {\n          \"outcome_id\": \"OUT-BEARS\",\n          \"name\": \"Summit Bears\",\n          \"american_odds\": 110,\n          \"decimal_odds\": 2.1\n        }\n      ]\n    },\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"total\",\n      \"name\": \"Total Points 47.5\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-OVER\",\n          \"name\": \"Over 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        },\n        {\n          \"outcome_id\": \"OUT-UNDER\",\n          \"name\": \"Under 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        }\n      ]\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "5fd7e8ca-87a7-4f86-8bcf-59fb3fc63b61"
+          "id": "d085116d-8022-48b8-a76e-94bef84f8942"
         }
       ],
-      "id": "13a42de4-de29-489b-964f-c5bdc87fed43"
+      "id": "330e8167-b858-448e-8fd1-77a1d301c717"
     }
   ],
   "auth": {

@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "c2bcb427-7312-43a0-8789-5986a1895e16",
+    "_postman_id": "26c2be65-7ef8-4829-b4aa-65a88618e95a",
     "name": "Ridgeline · Geo Compliance API",
-    "description": "Which products a player may access in their state. Casino is available in NJ, PA and MI only (sandbox data).\n\n**Owner:** Team Compliance\n**Auth:** Bearer `{{geo_compliance_key}}`. In the Passport environment this is `{{vault:RIDGELINE_GEO_COMPLIANCE_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "description": "Which products a player may access in their state. Casino is available in NJ, PA and MI only (sandbox data).\n\nWhich **products** a player may access in their **state**. Check this before offering casino promotions or placing casino bets.\n\n**Owner:** Team Compliance · **Consumers:** bets (safety net), promotions tooling, boost-ops agent\n\n| State | Sportsbook | Casino |\n|---|---|---|\n| NJ | yes | yes |\n| PA | yes | yes |\n| MI | yes | yes |\n| NY | yes | **no** |\n\n*(Illustrative sandbox data only.)*\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{geo_compliance_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_GEO_COMPLIANCE_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -28,7 +28,7 @@
             "check"
           ]
         },
-        "description": "Check product availability for a player's location",
+        "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -75,7 +75,7 @@
                 "check"
               ]
             },
-            "description": "Check product availability for a player's location",
+            "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -96,10 +96,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "fbad460a-e317-4411-9db5-b5f6c0560ec7"
+          "id": "d30cebd6-9ef6-4c23-81b9-f410c3c21a94"
         }
       ],
-      "id": "fd15f804-73a5-426f-84a9-3849130c2ce0"
+      "id": "42ba83e1-c85b-488d-b292-4319f74c9545"
     }
   ],
   "auth": {

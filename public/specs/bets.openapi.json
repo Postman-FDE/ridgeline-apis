@@ -3,7 +3,7 @@
   "info": {
     "title": "Ridgeline Bets API",
     "version": "2.0.0",
-    "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\nOwner: Team Bet Platform. Ridgeline is a fictional company; all data is sandbox data.",
+    "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**Bet placement**, single or parlay, optionally with a claimed boost.\n\n**Owner:** Team Bet Platform · **Consumers:** bet-slip, sportsbook-app (contract tested)\n\n### v2 (2026-07): breaking change\n`stake` (decimal dollars) was **removed** and replaced by `stake_minor` (integer cents). Requests that still send `stake` are rejected with `400 unsupported_field` and a `replacement` hint. The v1 spec is kept in history for reference.\n\n### Safety nets\nAt placement, bets re-checks **geo-compliance** and **player-limits** and rejects with `403`. This is a backstop, not a substitute: callers must still check eligibility **before** showing an offer.\n\n### Payout math\n`potential_payout_minor = stake_minor + stake_minor × (decimal_odds − 1) × (1 + profit_boost_pct/100)`, rounded. Parlays multiply decimal odds.\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
     "contact": {
       "name": "Team Bet Platform"
     },
@@ -32,7 +32,7 @@
   "tags": [
     {
       "name": "bets",
-      "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer."
+      "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer. Owner: Team Bet Platform."
     }
   ],
   "paths": {
@@ -43,6 +43,7 @@
         ],
         "operationId": "bets_post_bets",
         "summary": "Place a bet",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "parameters": [],
         "responses": {
           "201": {
@@ -60,40 +61,49 @@
                   ],
                   "properties": {
                     "bet_id": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Sandbox player ID, `P-1001` to `P-1005`."
                     },
                     "player_id": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Sandbox player ID, `P-1001` to `P-1005`."
                     },
                     "status": {
                       "type": "string",
                       "enum": [
                         "accepted"
-                      ]
+                      ],
+                      "description": "Lifecycle status."
                     },
                     "product": {
                       "type": "string",
                       "enum": [
                         "sportsbook",
                         "casino"
-                      ]
+                      ],
+                      "description": "`sportsbook` or `casino`."
                     },
                     "stake_minor": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Stake in minor units (cents). Integer, at least 1. `1000` = $10.00. Replaces the v1 `stake` field."
                     },
                     "potential_payout_minor": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Total return if the bet wins (stake + profit, including any boost), in cents."
                     },
                     "boost_id": {
                       "type": "string",
-                      "nullable": true
+                      "nullable": true,
+                      "description": "Boost to apply. The player must have claimed it first."
                     },
                     "rewards_earned_minor": {
-                      "type": "integer"
+                      "type": "integer",
+                      "description": "Rewards credited by this bet (from the boost), in cents."
                     },
                     "placed_at": {
                       "type": "string",
-                      "format": "date-time"
+                      "format": "date-time",
+                      "description": "When the bet was accepted (ISO 8601)."
                     }
                   }
                 },
@@ -112,13 +122,13 @@
                   "potential_payout_minor": 1770,
                   "boost_id": null,
                   "rewards_earned_minor": 0,
-                  "placed_at": "2026-10-07T18:52:21.778Z"
+                  "placed_at": "2026-10-07T18:57:35.932Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "`unsupported_field`: The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. `invalid_amount`: `stake_minor` is not a positive integer.",
             "content": {
               "application/json": {
                 "schema": {
@@ -133,6 +143,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unsupported_field": {
+                    "summary": "The request contains the removed v1 stake field. The error includes \"replacement\": \"stake_minor\".",
+                    "value": {
+                      "error": "unsupported_field",
+                      "message": "The request contains the removed v1 stake field. The error includes \"replacement\": \"stake_minor\"."
+                    }
+                  },
+                  "invalid_amount": {
+                    "summary": "stake_minor is not a positive integer.",
+                    "value": {
+                      "error": "invalid_amount",
+                      "message": "stake_minor is not a positive integer."
                     }
                   }
                 }
@@ -140,7 +166,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -155,6 +181,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -162,7 +204,7 @@
             }
           },
           "403": {
-            "description": "Player not eligible or product not available in state",
+            "description": "`player_not_eligible`: Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). `product_not_available`: The product is not available in the player's state.",
             "content": {
               "application/json": {
                 "schema": {
@@ -177,6 +219,84 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "player_not_eligible": {
+                    "summary": "Player-limits rejected the wager. reasons lists why (e.g. SELF_EXCLUDED).",
+                    "value": {
+                      "error": "player_not_eligible",
+                      "message": "Player-limits rejected the wager. reasons lists why (e.g. SELF_EXCLUDED)."
+                    }
+                  },
+                  "product_not_available": {
+                    "summary": "The product is not available in the player's state.",
+                    "value": {
+                      "error": "product_not_available",
+                      "message": "The product is not available in the player's state."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`selection_not_found`: Unknown `market_id` / `outcome_id`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "selection_not_found": {
+                    "summary": "Unknown market_id / outcome_id.",
+                    "value": {
+                      "error": "selection_not_found",
+                      "message": "Unknown market_id / outcome_id."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`boost_not_claimed`: `boost_id` given but the player has not claimed it.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "boost_not_claimed": {
+                    "summary": "boost_id given but the player has not claimed it.",
+                    "value": {
+                      "error": "boost_not_claimed",
+                      "message": "boost_id given but the player has not claimed it."
                     }
                   }
                 }
@@ -184,7 +304,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -201,6 +321,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
@@ -220,14 +344,16 @@
                 "additionalProperties": false,
                 "properties": {
                   "player_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Boost to apply. The player must have claimed it first."
                   },
                   "product": {
                     "type": "string",
                     "enum": [
                       "sportsbook",
                       "casino"
-                    ]
+                    ],
+                    "description": "`sportsbook` or `casino`."
                   },
                   "selections": {
                     "type": "array",
@@ -240,21 +366,25 @@
                       ],
                       "properties": {
                         "market_id": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Boost to apply. The player must have claimed it first."
                         },
                         "outcome_id": {
-                          "type": "string"
+                          "type": "string",
+                          "description": "Boost to apply. The player must have claimed it first."
                         }
                       }
-                    }
+                    },
+                    "description": "One or more `{ market_id, outcome_id }`. More than one makes a parlay (odds multiply)."
                   },
                   "stake_minor": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Stake in cents. 1000 = $10.00."
+                    "description": "Stake in minor units (cents). Integer, at least 1. `1000` = $10.00. Replaces the v1 `stake` field."
                   },
                   "boost_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Boost to apply. The player must have claimed it first."
                   }
                 }
               },
@@ -278,6 +408,7 @@
         ],
         "operationId": "bets_get_bets",
         "summary": "List bets",
+        "description": "List bets, optionally for one `player_id`.",
         "parameters": [
           {
             "name": "player_id",
@@ -315,7 +446,7 @@
                       "potential_payout_minor": 1770,
                       "boost_id": null,
                       "rewards_earned_minor": 0,
-                      "placed_at": "2026-10-07T18:52:21.778Z"
+                      "placed_at": "2026-10-07T18:57:35.932Z"
                     }
                   ]
                 }
@@ -323,7 +454,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -340,12 +471,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -360,6 +498,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -367,7 +521,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -384,6 +538,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }

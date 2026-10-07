@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "c6e9489e-5732-4e71-9bee-54b307cf2dc1",
+    "_postman_id": "53744e21-44cc-4804-becb-14aff3931f2f",
     "name": "Ridgeline · Wallet API",
-    "description": "Player balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents).\n\n**Owner:** Team Payments\n**Auth:** Bearer `{{wallet_key}}`. In the Passport environment this is `{{vault:RIDGELINE_WALLET_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "description": "Player balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents).\n\nPlayer balances (**cash**, **bonus**, **rewards**) and **rewards credits**. All amounts are integer cents.\n\n**Owner:** Team Payments · **Consumers:** bet-slip, promotions tooling, agents that issue rewards\n\nRewards credits are **idempotent**: send a unique `idempotency_key` per credit, and replaying a key never credits twice. Agents that move value should always generate a fresh key per intended credit.\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{wallet_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_WALLET_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -28,7 +28,7 @@
             "balance"
           ]
         },
-        "description": "Get a player balance",
+        "description": "Get a player's current balances.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -75,7 +75,7 @@
                 "balance"
               ]
             },
-            "description": "Get a player balance",
+            "description": "Get a player's current balances.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -96,10 +96,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
           "_postman_previewlanguage": "json",
-          "id": "e67031fc-3202-4163-86bc-6d6010cd80a9"
+          "id": "4689adec-9389-4a8b-a5cd-f1a0bcefa7cb"
         }
       ],
-      "id": "6ae67627-a172-4120-a11d-7fb51428ea92"
+      "id": "f2b77dd1-59fa-49fc-a262-94a2d3d7c0d5"
     },
     {
       "name": "Credit rewards to a player (idempotent)",
@@ -124,7 +124,7 @@
             "credit"
           ]
         },
-        "description": "Credit rewards to a player (idempotent)",
+        "description": "Credit rewards to a player. Idempotent on `idempotency_key`: the first call credits, replays return the current balance unchanged. **Check `player-limits` first.** Protected players (`may_receive_promotions: false`) must not receive promotional credits.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_amount` | `amount_minor` is not a positive integer. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"amount_minor\": 100,\n  \"reason\": \"Championship Rewards Boost\",\n  \"idempotency_key\": \"demo-credit-001\"\n}",
@@ -172,7 +172,7 @@
                 "credit"
               ]
             },
-            "description": "Credit rewards to a player (idempotent)",
+            "description": "Credit rewards to a player. Idempotent on `idempotency_key`: the first call credits, replays return the current balance unchanged. **Check `player-limits` first.** Protected players (`may_receive_promotions: false`) must not receive promotional credits.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_amount` | `amount_minor` is not a positive integer. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"amount_minor\": 100,\n  \"reason\": \"Championship Rewards Boost\",\n  \"idempotency_key\": \"demo-credit-001\"\n}",
@@ -193,10 +193,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1001\",\n  \"rewards_minor\": 1300,\n  \"idempotency_key\": \"demo-credit-001\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "b8e7b91f-b105-4e7a-a6cd-802a8573130d"
+          "id": "5a5ca6d6-1965-42e9-9bf2-12070f28ea8c"
         }
       ],
-      "id": "56bb21b6-4da6-4ffe-bef3-a42b405985ed"
+      "id": "d96acce6-46c8-4a96-95d4-a7150a656a14"
     }
   ],
   "auth": {

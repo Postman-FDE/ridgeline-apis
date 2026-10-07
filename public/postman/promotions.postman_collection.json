@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "5b26bc88-6eb6-4bc8-90cc-163879c387db",
+    "_postman_id": "82505fc2-18a8-4cc9-9b89-340729f1960c",
     "name": "Ridgeline · Promotions API",
-    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Owner:** Team Promotions\n**Auth:** Bearer `{{promotions_key}}`. In the Passport environment this is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{promotions_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -27,7 +27,7 @@
             "boosts"
           ]
         },
-        "description": "List boosts"
+        "description": "List boosts."
       },
       "event": [
         {
@@ -64,7 +64,7 @@
                 "boosts"
               ]
             },
-            "description": "List boosts"
+            "description": "List boosts."
           },
           "status": "OK",
           "code": 200,
@@ -76,10 +76,10 @@
           ],
           "body": "{\n  \"boosts\": []\n}",
           "_postman_previewlanguage": "json",
-          "id": "bae7af40-b173-46b1-a977-333f56d1c2e3"
+          "id": "797df5fa-0709-4235-9bc5-9961dc79ece8"
         }
       ],
-      "id": "dbac44be-5730-4489-84c3-d8a734dbb091"
+      "id": "5dd1527c-0876-4c11-bd37-0833b650deca"
     },
     {
       "name": "Create a boost",
@@ -102,7 +102,7 @@
             "boosts"
           ]
         },
-        "description": "Create a boost",
+        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -149,7 +149,7 @@
                 "boosts"
               ]
             },
-            "description": "Create a boost",
+            "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -168,12 +168,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:52:21.777Z\"\n}",
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "e22210b5-fecb-446a-bf85-7a92bf74c33f"
+          "id": "b5df1a5d-2e37-40b9-8f26-19a97241982f"
         }
       ],
-      "id": "09aa5171-3b54-490e-964d-20f0482379bd"
+      "id": "b187734b-a773-4c39-a660-5f0603328824"
     },
     {
       "name": "Claim a boost for a player (caller must check eligibility first)",
@@ -197,7 +197,7 @@
             "claim"
           ]
         },
-        "description": "Claim a boost for a player (caller must check eligibility first)",
+        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -244,7 +244,7 @@
                 "claim"
               ]
             },
-            "description": "Claim a boost for a player (caller must check eligibility first)",
+            "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -263,12 +263,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "da92f16e-586b-4d79-a272-4c7cd393989f"
+          "id": "0c66bd52-552f-4ca1-900e-9d3b02ba572f"
         }
       ],
-      "id": "fdf7fef1-8c45-47ed-8d29-b5641093eae1"
+      "id": "4ca6bf34-ea7b-424b-b42b-69562817b2d8"
     },
     {
       "name": "List claims for a boost",
@@ -299,7 +299,7 @@
             }
           ]
         },
-        "description": "List claims for a boost"
+        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim."
       },
       "event": [
         {
@@ -344,7 +344,7 @@
                 }
               ]
             },
-            "description": "List claims for a boost"
+            "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim."
           },
           "status": "OK",
           "code": 200,
@@ -354,12 +354,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n    }\n  ]\n}",
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "20390109-f8df-49d1-b9cf-7dcc3ee26317"
+          "id": "70d12bf9-e6bc-482d-bb95-569bb8d0a68a"
         }
       ],
-      "id": "464f2970-768f-42d0-981a-5edb53f55683"
+      "id": "64e03400-3c12-4174-89e3-e2f531b63b26"
     }
   ],
   "auth": {

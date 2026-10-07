@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "1c6f187c-0ced-475d-838c-6f8ef82078e9",
+    "_postman_id": "ef0ecb8e-c0fb-47eb-ae5e-a514d9fa22fe",
     "name": "Ridgeline · Championship Rewards Boost (E2E)",
     "description": "The ticket, done right: create the boost, check **player-limits** and **geo-compliance** before every offer, claim only for eligible players, place a boosted bet in `stake_minor`, then assert the **end state**: no self-excluded or cool-off player holds a claim. Run in order with the Collection Runner. Each request uses its own service key via a Passport reference.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -27,7 +27,7 @@
             "boosts"
           ]
         },
-        "description": "Create a boost",
+        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -82,7 +82,7 @@
                 "boosts"
               ]
             },
-            "description": "Create a boost",
+            "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -111,12 +111,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:52:21.777Z\"\n}",
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "b5e829fc-b079-4bf7-ae32-09d2bdecda6c"
+          "id": "716e117b-2428-4fc9-bf68-51d3159c3100"
         }
       ],
-      "id": "ba77a110-9c56-4ac4-9619-4a394946485d"
+      "id": "02ef6843-d861-4c04-abbb-f969a0264eb7"
     },
     {
       "name": "2. Eligibility · P-1001 (NJ, active)",
@@ -140,7 +140,7 @@
             "check"
           ]
         },
-        "description": "Check whether a player may wager / receive promotions",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -195,7 +195,7 @@
                 "check"
               ]
             },
-            "description": "Check whether a player may wager / receive promotions",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -224,12 +224,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "80a2f31a-3e5a-4a9d-8256-2ef03759f3cf"
+          "id": "7139852d-78ee-4eda-bc03-a1179bced776"
         }
       ],
-      "id": "8c6a71ed-2712-4c26-9f08-7810d77d7d91"
+      "id": "69a8f99a-b45f-4bcf-85b9-235363d03f89"
     },
     {
       "name": "3. Eligibility · P-1003 (self-excluded) → do not offer",
@@ -253,7 +253,7 @@
             "check"
           ]
         },
-        "description": "Check whether a player may wager / receive promotions",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -310,7 +310,7 @@
                 "check"
               ]
             },
-            "description": "Check whether a player may wager / receive promotions",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -339,12 +339,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "871b4432-2b44-4837-bcfa-412eec4204ce"
+          "id": "5fa729e7-a98c-49e9-b78a-232f6f6d7689"
         }
       ],
-      "id": "f8cadf21-3c03-4e2d-8d95-de0f02209fdf"
+      "id": "7adbfa5d-a682-4d6c-8747-be4a715da869"
     },
     {
       "name": "4. Eligibility · P-1005 (cool-off) → do not offer",
@@ -368,7 +368,7 @@
             "check"
           ]
         },
-        "description": "Check whether a player may wager / receive promotions",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -423,7 +423,7 @@
                 "check"
               ]
             },
-            "description": "Check whether a player may wager / receive promotions",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -452,12 +452,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "c2819602-7574-4c60-9231-7b80a2b952ab"
+          "id": "9c29fcf3-5680-4f58-b7f1-2c629fba9b63"
         }
       ],
-      "id": "53bce087-25db-4521-8d4c-77b6f0b8cc1f"
+      "id": "3ffdc564-830d-4644-b280-9a2866da6cc5"
     },
     {
       "name": "5. Geo · P-1004 casino in NY → sportsbook only",
@@ -481,7 +481,7 @@
             "check"
           ]
         },
-        "description": "Check product availability for a player's location",
+        "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -536,7 +536,7 @@
                 "check"
               ]
             },
-            "description": "Check product availability for a player's location",
+            "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -567,10 +567,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "34bd5c5c-7825-4ec0-b1b7-b3db7ff94dac"
+          "id": "3de20bb2-52c3-4bb4-8a8d-ead4a64bf63a"
         }
       ],
-      "id": "80c8f6d1-5e79-4ad8-91eb-50b71cf6a7a6"
+      "id": "38f817ce-cbdf-401f-b924-70be7eb6a6bb"
     },
     {
       "name": "6. Claim boost for eligible P-1001",
@@ -594,7 +594,7 @@
             "claim"
           ]
         },
-        "description": "Claim a boost for a player (caller must check eligibility first)",
+        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -649,7 +649,7 @@
                 "claim"
               ]
             },
-            "description": "Claim a boost for a player (caller must check eligibility first)",
+            "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -678,12 +678,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "b3c4f8c0-e2d9-40de-9825-3eb47c3f08d3"
+          "id": "c25d7c88-121d-4a9a-9606-ee2a78dc4340"
         }
       ],
-      "id": "6b55cd0c-46bd-49e1-a494-45ae212ef551"
+      "id": "f94d1600-835e-4cdd-b3ee-db75861de3d8"
     },
     {
       "name": "7. Place boosted bet (stake_minor = 1000)",
@@ -706,7 +706,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
@@ -763,7 +763,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet",
+            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
@@ -792,12 +792,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "3874ca1f-e698-4c7c-b53b-04819816eafd"
+          "id": "226798b9-a37d-44a6-bec8-80daa4eba73a"
         }
       ],
-      "id": "cf847ba8-552b-40d2-9a3d-73d569d75087"
+      "id": "e9af53fe-e441-4407-a4c0-f30507ac734c"
     },
     {
       "name": "8. END STATE · no protected player holds a claim",
@@ -828,7 +828,7 @@
             }
           ]
         },
-        "description": "List claims for a boost",
+        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.",
         "auth": {
           "type": "bearer",
           "bearer": [
@@ -883,7 +883,7 @@
                 }
               ]
             },
-            "description": "List claims for a boost",
+            "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -903,12 +903,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n    }\n  ]\n}",
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "d02bd459-563b-42c0-a591-c517fb1435ee"
+          "id": "c9d7af79-ee2b-4ba2-870d-abadaf511240"
         }
       ],
-      "id": "de3a7c61-469f-4dee-a9b8-0dbe012dc33e"
+      "id": "a8498fba-dd73-4d71-b54a-bf2192d7ca47"
     },
     {
       "name": "9. END STATE · Rewards credited to P-1001",
@@ -932,7 +932,7 @@
             "balance"
           ]
         },
-        "description": "Get a player balance",
+        "description": "Get a player's current balances.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -987,7 +987,7 @@
                 "balance"
               ]
             },
-            "description": "Get a player balance",
+            "description": "Get a player's current balances.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -1018,10 +1018,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
           "_postman_previewlanguage": "json",
-          "id": "0ca9f47b-6684-43a3-a78b-5937de74d76a"
+          "id": "a2028bcf-eb56-4f30-b6be-6529d804fd9f"
         }
       ],
-      "id": "cd281cbc-46ca-420a-95fc-85745ed44cff"
+      "id": "60471d86-5c74-4faf-b9cf-88968dfd30bb"
     }
   ],
   "variable": [

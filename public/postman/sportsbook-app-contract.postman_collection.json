@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "968962cc-7d39-4236-ab44-804881ed0795",
+    "_postman_id": "a31c542c-42bb-4c27-8edd-f5dd18903550",
     "name": "Ridgeline · sportsbook-app consumer contract",
     "description": "Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer's own tests but breaks these fails the build.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -27,7 +27,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
@@ -82,7 +82,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet",
+            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
@@ -111,12 +111,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "e1a7215d-2ef0-49e4-9b73-310805670d26"
+          "id": "13b6b078-5706-42db-8b63-b46bf3318898"
         }
       ],
-      "id": "dd9ccbba-224c-468f-b1d5-d6967012c72b"
+      "id": "e2b87202-2a5c-4c74-93c8-4d994cd2b316"
     },
     {
       "name": "2. bets · legacy `stake` is rejected loudly",
@@ -139,7 +139,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
@@ -194,7 +194,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet",
+            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
@@ -223,12 +223,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "1b5bf80a-e503-43b9-a1dc-52e078955843"
+          "id": "afe5df08-9b09-4583-96f1-f3301b04b86f"
         }
       ],
-      "id": "f378f678-ebff-4ae6-bf7c-2e71a8043304"
+      "id": "283962cf-8fde-4192-99f9-d87cefa0fd7c"
     },
     {
       "name": "3. player-limits · fields the app gates offers on",
@@ -252,7 +252,7 @@
             "check"
           ]
         },
-        "description": "Check whether a player may wager / receive promotions",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -308,7 +308,7 @@
                 "check"
               ]
             },
-            "description": "Check whether a player may wager / receive promotions",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -337,12 +337,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "10983871-2729-4342-b3f8-19ea2f76c889"
+          "id": "44b9c0c7-ad08-457a-8532-301f33d39046"
         }
       ],
-      "id": "b8b05eba-3a41-4bb1-a58a-39b5c66212c0"
+      "id": "ca26bddd-b6cc-48bd-8edd-f75152a3c658"
     }
   ]
 }

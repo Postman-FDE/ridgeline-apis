@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "1759c08c-a232-415a-bd59-e39123af49e0",
+    "_postman_id": "02a837dd-81f9-48c3-834c-891e27275050",
     "name": "Ridgeline · Test Suite",
     "description": "Automated tests for every Ridgeline API: **auth** (each API only accepts its own key, and rejects unresolved Passport references), **functional** behavior, **business rules** (self-exclusion, cool-off, daily limits, state availability, the v2 `stake_minor` contract) and **negative cases**. Run with the Collection Runner, `postman collection run`, or Newman. Every request also checks response time and JSON content type (collection-level tests).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -47,7 +47,7 @@
               }
             }
           ],
-          "id": "453ad8a6-461c-4056-a43e-7e2bafe61cc6"
+          "id": "07878781-b7d3-461d-bce6-458aa460c7bf"
         },
         {
           "name": "markets · another API's key → 401",
@@ -93,7 +93,7 @@
               }
             }
           ],
-          "id": "b717ee51-a5a1-4cae-96df-9ad3cad4c830"
+          "id": "eed80124-b323-4c42-9aa9-161b6eff65f6"
         },
         {
           "name": "markets · unresolved Passport reference → 401",
@@ -142,7 +142,7 @@
               }
             }
           ],
-          "id": "e50b13d9-aa48-4c4a-a563-0c92179c9ed7"
+          "id": "0b0b44b6-c453-4c81-80ee-b3413e68c143"
         },
         {
           "name": "markets · own key → 2xx",
@@ -187,7 +187,7 @@
               }
             }
           ],
-          "id": "b14d34db-a270-4f19-b337-44bf0143556d"
+          "id": "26185618-9785-4f1b-b6d7-2276f881d456"
         },
         {
           "name": "wallet · no key → 401",
@@ -236,7 +236,7 @@
               }
             }
           ],
-          "id": "c3edf4d8-ca5d-43a7-8c41-1d070cafb8db"
+          "id": "3d5cddab-f168-49b9-9089-d19b92e93efb"
         },
         {
           "name": "wallet · another API's key → 401",
@@ -292,7 +292,7 @@
               }
             }
           ],
-          "id": "ef7e709c-0d38-4b66-8506-794acd994579"
+          "id": "0546642a-acc2-4447-9faa-baf0eadc6dc6"
         },
         {
           "name": "wallet · unresolved Passport reference → 401",
@@ -351,7 +351,7 @@
               }
             }
           ],
-          "id": "951d6a80-715f-47fc-b7f4-ce46911222c9"
+          "id": "9ce31618-75e3-4657-bafe-88732e8ae2b3"
         },
         {
           "name": "wallet · own key → 2xx",
@@ -406,7 +406,7 @@
               }
             }
           ],
-          "id": "24cbba82-089c-4cb4-86b1-d64689be5bf9"
+          "id": "7b79cc8c-28d8-4a38-9fa2-eb96c7af8b63"
         },
         {
           "name": "promotions · no key → 401",
@@ -445,7 +445,7 @@
               }
             }
           ],
-          "id": "947718bc-3123-4a81-a503-4113cbc734d3"
+          "id": "2944a094-38b3-44c7-adb2-2b04a7ec5aef"
         },
         {
           "name": "promotions · another API's key → 401",
@@ -491,7 +491,7 @@
               }
             }
           ],
-          "id": "254bde61-6c3c-4080-b76c-9c9532213ec1"
+          "id": "8db684bf-f8e1-46ec-8afe-b7429238bff7"
         },
         {
           "name": "promotions · unresolved Passport reference → 401",
@@ -540,7 +540,7 @@
               }
             }
           ],
-          "id": "4e7eba8c-05ec-4018-aba3-8fc44957b58f"
+          "id": "542ae145-7cab-4411-9385-a982248c155e"
         },
         {
           "name": "promotions · own key → 2xx",
@@ -585,7 +585,7 @@
               }
             }
           ],
-          "id": "b26b6d11-d17e-4aed-9858-329d3f8efab2"
+          "id": "cb85bbeb-a2af-4241-8623-f77cae92269e"
         },
         {
           "name": "player-limits · no key → 401",
@@ -634,7 +634,7 @@
               }
             }
           ],
-          "id": "a5ecfee4-3fe7-4064-b7b4-bcfb48fd4b3d"
+          "id": "9fa0db63-613f-43e1-9f67-cc59837fe901"
         },
         {
           "name": "player-limits · another API's key → 401",
@@ -690,7 +690,7 @@
               }
             }
           ],
-          "id": "bd488077-fe51-4d73-8b70-7dd5259858d6"
+          "id": "bd89cc41-b97e-460d-a7de-fdb55a3b768a"
         },
         {
           "name": "player-limits · unresolved Passport reference → 401",
@@ -749,7 +749,7 @@
               }
             }
           ],
-          "id": "ba2f6b21-fe2f-4c9a-9af5-b5c8b53e7d5d"
+          "id": "b679a376-8493-411f-a0ff-767310f413f5"
         },
         {
           "name": "player-limits · own key → 2xx",
@@ -804,7 +804,7 @@
               }
             }
           ],
-          "id": "e53e587c-4049-4bc1-91ef-ad58713f47a2"
+          "id": "82c8d6ac-fb05-4fb8-8a62-b2a70ada27d5"
         },
         {
           "name": "bets · no key → 401",
@@ -843,7 +843,7 @@
               }
             }
           ],
-          "id": "fb290fb3-fb78-4f66-90ee-89e4b245e3fc"
+          "id": "d192c9a0-68e8-4f65-aaf6-056d5af0623b"
         },
         {
           "name": "bets · another API's key → 401",
@@ -889,7 +889,7 @@
               }
             }
           ],
-          "id": "402289b5-eabc-4793-94d0-4ee73484eadc"
+          "id": "0e93f660-3845-4e2e-b24b-e42a9e7b47ec"
         },
         {
           "name": "bets · unresolved Passport reference → 401",
@@ -938,7 +938,7 @@
               }
             }
           ],
-          "id": "79e41108-5335-4641-b328-77b82bc0c841"
+          "id": "d69c1c43-8838-4940-af92-8919f22238e8"
         },
         {
           "name": "bets · own key → 2xx",
@@ -983,7 +983,7 @@
               }
             }
           ],
-          "id": "75fe98f8-225b-4763-b42d-f0cc5666971f"
+          "id": "52c30e70-d0d4-4eb0-af03-394fb70e6beb"
         },
         {
           "name": "geo-compliance · no key → 401",
@@ -1032,7 +1032,7 @@
               }
             }
           ],
-          "id": "ec4db5f6-179d-4290-bf94-d2935ad4cf04"
+          "id": "7f2ea11a-ed17-454c-8c38-44d7c0f23c8c"
         },
         {
           "name": "geo-compliance · another API's key → 401",
@@ -1088,7 +1088,7 @@
               }
             }
           ],
-          "id": "8cc1dcdf-c36d-4aed-998e-ed3e726bfdbf"
+          "id": "3d22d1ba-4221-4acb-aeca-0333d1df4dd2"
         },
         {
           "name": "geo-compliance · unresolved Passport reference → 401",
@@ -1147,7 +1147,7 @@
               }
             }
           ],
-          "id": "20bb9973-240d-41be-815c-f9f6f0b6464a"
+          "id": "eb0008fe-d464-4d39-be6d-63968a50bee7"
         },
         {
           "name": "geo-compliance · own key → 2xx",
@@ -1202,10 +1202,10 @@
               }
             }
           ],
-          "id": "78f3b916-e175-470a-8ae2-1a2ffe3e0c0a"
+          "id": "b9c999b2-f57b-4169-8a5f-03c167f58199"
         }
       ],
-      "id": "7ede8cfe-2754-4c2c-a4f0-07e475ce642e"
+      "id": "b933439a-bdc2-48f0-bc71-86d3e2ab1a52"
     },
     {
       "name": "Markets",
@@ -1255,7 +1255,7 @@
               }
             }
           ],
-          "id": "e9f1c4e1-0fb2-4cc6-8c42-230809a62e9a"
+          "id": "589ac542-48e6-45ae-a6b6-4dd0475c9d6d"
         },
         {
           "name": "markets filter by event, odds are valid",
@@ -1309,7 +1309,7 @@
               }
             }
           ],
-          "id": "c34d36ca-07d5-49a8-8d95-42c7e6520a63"
+          "id": "3e861b03-45f5-42f0-bb48-88e0a5b3be2d"
         },
         {
           "name": "unknown event returns an empty list",
@@ -1361,10 +1361,10 @@
               }
             }
           ],
-          "id": "a3b95141-97b6-410e-83ca-4df0f7f3c295"
+          "id": "66098740-be19-4c32-82b6-4462741cf02e"
         }
       ],
-      "id": "4a19f427-a9db-4ba8-a405-ac4a6912f77f"
+      "id": "915461a7-1d50-4331-8127-25d215e464e9"
     },
     {
       "name": "Player limits (responsible gaming)",
@@ -1426,7 +1426,7 @@
               }
             }
           ],
-          "id": "5bbd2914-a92a-4446-a8a2-589301183a23"
+          "id": "4a5ae693-5fb3-472a-87b1-35ddc3ea5482"
         },
         {
           "name": "P-1003 self-excluded → blocked, no promotions",
@@ -1485,7 +1485,7 @@
               }
             }
           ],
-          "id": "05d6956a-4bd4-4b8d-beb0-6dc3cccef5a3"
+          "id": "534743f3-70a2-4d15-8a22-0f6d9eb2d079"
         },
         {
           "name": "P-1005 cool-off → blocked, no promotions",
@@ -1543,7 +1543,7 @@
               }
             }
           ],
-          "id": "b2789a3b-78e1-4135-8aef-68b7ea0e5567"
+          "id": "8c7c84d6-dc6d-4d5a-a554-ba2588746aef"
         },
         {
           "name": "P-1002 over daily limit → wager blocked, promotions still allowed",
@@ -1601,7 +1601,7 @@
               }
             }
           ],
-          "id": "74f3ed8f-61cb-421d-b96a-5e40fa473517"
+          "id": "d450ce08-998d-4915-a801-ee396b630496"
         },
         {
           "name": "invalid product → 400",
@@ -1657,7 +1657,7 @@
               }
             }
           ],
-          "id": "9beb8442-9cd5-4bfd-891e-f60f04cdfdcc"
+          "id": "d4e7ab3c-e16b-4642-a8d4-2b25a9444644"
         },
         {
           "name": "missing player_id → 400",
@@ -1713,7 +1713,7 @@
               }
             }
           ],
-          "id": "7c9630c1-ad54-475c-818f-6283a560fa86"
+          "id": "511b248e-c904-43de-9599-e19e8124bd04"
         },
         {
           "name": "unknown player → 404",
@@ -1769,7 +1769,7 @@
               }
             }
           ],
-          "id": "3ae2ff09-9e67-4b09-a5ea-e1f6cf6704af"
+          "id": "03d9d0cf-6764-4786-a031-459f8a4a8530"
         },
         {
           "name": "limits for P-1002",
@@ -1825,10 +1825,10 @@
               }
             }
           ],
-          "id": "7cd6c7f2-c609-4dd3-8255-fd55cdea476b"
+          "id": "019cc9b2-4e6d-4753-94f8-cea1cdc4280f"
         }
       ],
-      "id": "ad9902ef-927c-4f83-9e79-04a4553fb299"
+      "id": "a8365e54-ed00-4a81-a894-6d9d23161485"
     },
     {
       "name": "Geo compliance",
@@ -1889,7 +1889,7 @@
               }
             }
           ],
-          "id": "b8d388a3-4f2c-45e2-ba82-518dad78482c"
+          "id": "41d0feff-35e3-4d2c-a862-21fffe46dafe"
         },
         {
           "name": "NY · sportsbook available",
@@ -1945,7 +1945,7 @@
               }
             }
           ],
-          "id": "952896cc-7404-4c3c-a2cb-2555c65f5b4e"
+          "id": "600ddbd1-62b9-48f9-a395-47067bacd469"
         },
         {
           "name": "NJ · casino available",
@@ -2001,10 +2001,10 @@
               }
             }
           ],
-          "id": "c02bc9f0-9d4d-4ed9-ba98-58cdba35a941"
+          "id": "0f089481-586e-4811-b46e-5584d2e6368d"
         }
       ],
-      "id": "8fedb90a-ddaa-425d-950b-0ed6dfeef709"
+      "id": "0532eef7-3f4a-47f7-83a3-f6c8209bc148"
     },
     {
       "name": "Wallet",
@@ -2066,7 +2066,7 @@
               }
             }
           ],
-          "id": "7ec73da8-1bbe-4f8e-adc8-5152dc960c0f"
+          "id": "52e7082a-21cd-4fcf-b767-f62840c60890"
         },
         {
           "name": "credit rewards (new idempotency key)",
@@ -2133,7 +2133,7 @@
               }
             }
           ],
-          "id": "569dc937-dc9b-4414-b49d-069171448ec3"
+          "id": "d6c607f1-52cf-49ab-8bfe-3648d315c6ab"
         },
         {
           "name": "replaying the same idempotency key does not double-credit",
@@ -2190,7 +2190,7 @@
               }
             }
           ],
-          "id": "0a71e4a9-e780-403b-82ab-dde4f2ffb20f"
+          "id": "4dc38c72-b7ba-4851-9ced-ccd881451aa3"
         },
         {
           "name": "decimal amount → 400",
@@ -2247,10 +2247,10 @@
               }
             }
           ],
-          "id": "81b38243-6f86-4d06-9f27-a90a10dceacf"
+          "id": "979d2738-e93d-4902-95e5-d9494df9ee0d"
         }
       ],
-      "id": "7f7dd622-b807-441e-a170-fe783ed14925"
+      "id": "206624bf-212d-437a-9b5e-2f680ecd03e3"
     },
     {
       "name": "Promotions",
@@ -2312,7 +2312,7 @@
               }
             }
           ],
-          "id": "9eb2b92c-b05e-4961-958a-ac3dc8b7ec4e"
+          "id": "461e3729-1d31-4ebc-89ea-fab894b69df5"
         },
         {
           "name": "unknown market → 404",
@@ -2367,7 +2367,7 @@
               }
             }
           ],
-          "id": "f5c14929-2862-48c8-8c64-57069d0b7688"
+          "id": "89b752e4-685e-4e60-ba7c-1b2675e90bd4"
         },
         {
           "name": "claim for eligible P-1001",
@@ -2423,7 +2423,7 @@
               }
             }
           ],
-          "id": "273bfe87-147a-433a-a742-709daeba135f"
+          "id": "f1585579-ac6f-481d-80d0-0e21d0d0dcb0"
         },
         {
           "name": "claiming twice is idempotent",
@@ -2479,7 +2479,7 @@
               }
             }
           ],
-          "id": "22fe7420-9fb5-4af2-86f4-dd5170cbd496"
+          "id": "6dbe67c6-7ac6-4b3b-9394-aa06a51d2b72"
         },
         {
           "name": "claims list has exactly one claim for P-1001",
@@ -2533,7 +2533,7 @@
               }
             }
           ],
-          "id": "57766d9b-bc93-44ee-844b-f9d8c07ba367"
+          "id": "bb9baa1b-a77c-4cca-b34e-d275e341a0e7"
         },
         {
           "name": "unknown boost → 404",
@@ -2589,10 +2589,10 @@
               }
             }
           ],
-          "id": "868e0ba1-dced-4abb-ad44-e2fbc4173c8f"
+          "id": "dd5ea1fb-c737-4d7a-a8ac-3cd00cb60437"
         }
       ],
-      "id": "c7e21b7d-3da4-431d-9dd0-d18ff3b0126d"
+      "id": "f68029a5-ce12-44bc-a7f7-61fb6dddd520"
     },
     {
       "name": "Bets",
@@ -2654,7 +2654,7 @@
               }
             }
           ],
-          "id": "b9cb5cb7-e38a-4f7c-8cda-837d82c2cefe"
+          "id": "4785ac87-257e-4a79-894e-e1b9f9ea023a"
         },
         {
           "name": "boosted bet · 25% profit boost + 10% rewards",
@@ -2711,7 +2711,7 @@
               }
             }
           ],
-          "id": "c5d4c68d-3517-4b65-a406-01f2597c2f6b"
+          "id": "f19db51e-e63f-47ce-9751-fbd387aac122"
         },
         {
           "name": "legacy `stake` field → 400 naming the replacement",
@@ -2767,7 +2767,7 @@
               }
             }
           ],
-          "id": "b5b50fe4-e888-445b-9bdd-fdb58ead0fa6"
+          "id": "4012a2a4-959e-4fc7-ba16-f19707f12a41"
         },
         {
           "name": "decimal stake_minor → 400",
@@ -2822,7 +2822,7 @@
               }
             }
           ],
-          "id": "191a8c6d-02b8-41f5-9842-4bdcb82ce308"
+          "id": "6fe83ee0-00fd-4e2a-82f8-45983e4ca3be"
         },
         {
           "name": "self-excluded P-1003 → 403",
@@ -2878,7 +2878,7 @@
               }
             }
           ],
-          "id": "e3f64931-9261-4f8a-9f15-68e6949873d6"
+          "id": "f2470de1-3e83-47e1-a45b-9d7d0b901592"
         },
         {
           "name": "casino in NY → 403",
@@ -2933,7 +2933,7 @@
               }
             }
           ],
-          "id": "423f3992-20a2-460c-bb24-572c60809cc5"
+          "id": "1b360299-290d-4f08-9fbc-b2ca86ea4177"
         },
         {
           "name": "boost not claimed → 409",
@@ -2988,7 +2988,7 @@
               }
             }
           ],
-          "id": "cf6e0e14-eeb0-43b4-a469-8d298497a4c4"
+          "id": "b58ab0c7-1d1c-4465-b6e3-255d056469f0"
         },
         {
           "name": "unknown selection → 404",
@@ -3043,10 +3043,10 @@
               }
             }
           ],
-          "id": "1d004bbc-a392-410e-b6ef-9bda5f6a18d1"
+          "id": "5f918822-502e-4d49-9c4f-5682d934c19b"
         }
       ],
-      "id": "a5411d6f-d986-4906-b679-243d4aa69f12"
+      "id": "a07597bd-52ed-47ee-b070-470873aec39e"
     }
   ],
   "event": [

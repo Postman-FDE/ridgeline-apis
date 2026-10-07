@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "f4fe37cd-5c9c-43f8-9321-52e3475ca68f",
+    "_postman_id": "fbe8ef70-5148-415f-8d25-8dcba010724b",
     "name": "Ridgeline · Player Limits API",
-    "description": "Responsible-gaming eligibility: self-exclusion, cool-off and daily wager limits. **The single source of truth for player protection. Never reimplement this logic in a caller.** Self-excluded and cool-off players must not receive promotional offers (`may_receive_promotions: false`).\n\n**Owner:** Team Responsible Gaming\n**Auth:** Bearer `{{player_limits_key}}`. In the Passport environment this is `{{vault:RIDGELINE_PLAYER_LIMITS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
+    "description": "Responsible-gaming eligibility: self-exclusion, cool-off and daily wager limits. **The single source of truth for player protection. Never reimplement this logic in a caller.** Self-excluded and cool-off players must not receive promotional offers (`may_receive_promotions: false`).\n\n**Responsible-gaming eligibility**: self-exclusion, cool-off and daily wager limits. This is the **single source of truth for player protection**. Never reimplement these rules in a caller.\n\n**Owner:** Team Responsible Gaming · **Consumers:** bets (safety net), bet-slip, promotions tooling, boost-ops agent\n\nTwo different questions, one call:\n- **May they wager this amount now?** → `eligible` (considers `amount_minor` against the daily limit).\n- **May they receive any promotion?** → `may_receive_promotions`. This is `false` for self-excluded and cool-off players **regardless of amount**.\n\n\n| Player | State | Status | Use it to test |\n|---|---|---|---|\n| `P-1001` | NJ | active | the happy path |\n| `P-1002` | PA | active, $20.00 left of a $50.00 daily limit | `DAILY_WAGER_LIMIT` |\n| `P-1003` | MI | **self-excluded** until 2027-06-30 | blocked wagers, **no promotions** |\n| `P-1004` | NY | active | casino not available in state |\n| `P-1005` | NJ | **cool-off** | blocked wagers, **no promotions** |\n\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{player_limits_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_PLAYER_LIMITS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -28,7 +28,7 @@
             "check"
           ]
         },
-        "description": "Check whether a player may wager / receive promotions",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -76,7 +76,7 @@
                 "check"
               ]
             },
-            "description": "Check whether a player may wager / receive promotions",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -95,12 +95,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "cacaa238-b883-4d85-bd15-1dd51e9bfdc2"
+          "id": "e2b76ada-35df-4d6e-8861-5df3fa07f6cf"
         }
       ],
-      "id": "bf073a74-0844-4a9d-8be9-c7aba428d683"
+      "id": "76cf1467-0c4b-4e2d-8a27-ca9ef79c6803"
     },
     {
       "name": "Get a player's limits and status",
@@ -123,7 +123,7 @@
             "limits"
           ]
         },
-        "description": "Get a player's limits and status",
+        "description": "Get a player's protection status and daily limit usage.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1002\"\n}",
@@ -169,7 +169,7 @@
                 "limits"
               ]
             },
-            "description": "Get a player's limits and status",
+            "description": "Get a player's protection status and daily limit usage.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1002\"\n}",
@@ -190,10 +190,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1002\",\n  \"status\": \"active\",\n  \"daily_wager_limit_minor\": 5000,\n  \"wagered_today_minor\": 3000\n}",
           "_postman_previewlanguage": "json",
-          "id": "8e6cfd78-b702-4b0c-b703-4aa9b49ef1cb"
+          "id": "6ef5607d-6a08-45c0-8e76-92a94f880145"
         }
       ],
-      "id": "b47bd020-eba9-4185-bac2-1be76a0643ee"
+      "id": "7921a785-93c3-4a2b-8891-3db063ccf9b8"
     }
   ],
   "auth": {

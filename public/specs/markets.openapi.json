@@ -3,7 +3,7 @@
   "info": {
     "title": "Ridgeline Markets API",
     "version": "1.0.0",
-    "description": "Events and odds for the sportsbook. Read-only.\n\nOwner: Team Trading. Ridgeline is a fictional company; all data is sandbox data.",
+    "description": "Events and odds for the sportsbook. Read-only.\n\nRead-only catalog of **events** and **markets with odds**. Use it to build a bet slip and to find the `market_id` / `outcome_id` that bets and promotions need.\n\n**Owner:** Team Trading · **Consumers:** bet-slip, sportsbook-app, promotions tooling\n\nThe sandbox has one event, `EVT-FINAL-2026` (Championship Final: Harbor Hawks vs. Summit Bears), with a moneyline (`MKT-ML-001`) and a total (`MKT-TOT-001`).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
     "contact": {
       "name": "Team Trading"
     },
@@ -32,7 +32,7 @@
   "tags": [
     {
       "name": "markets",
-      "description": "Events and odds for the sportsbook. Read-only."
+      "description": "Events and odds for the sportsbook. Read-only. Owner: Team Trading."
     }
   ],
   "paths": {
@@ -43,6 +43,7 @@
         ],
         "operationId": "markets_get_events",
         "summary": "List events",
+        "description": "List upcoming events.",
         "parameters": [],
         "responses": {
           "200": {
@@ -74,7 +75,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -91,12 +92,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -111,6 +119,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -118,7 +142,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -135,6 +159,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
@@ -149,6 +177,7 @@
         ],
         "operationId": "markets_get_markets",
         "summary": "List markets with odds for an event",
+        "description": "List markets with their outcomes and odds. Filter with `event_id`. American and decimal odds are both returned. Use `decimal_odds` for payout math (`payout = stake × decimal_odds`). An unknown `event_id` returns an empty list, not an error.",
         "parameters": [
           {
             "name": "event_id",
@@ -225,7 +254,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -242,12 +271,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -262,6 +298,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -269,7 +321,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -286,6 +338,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }

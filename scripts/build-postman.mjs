@@ -8,6 +8,7 @@ import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import { randomUUID, randomBytes } from 'node:crypto';
 import { services, errorSchema } from '../lib/catalog.mjs';
 import { KEY_ENV } from '../lib/api/keys.mjs';
+import * as docs from '../lib/docs.mjs';
 
 // Run against a fresh in-memory store, never a shared Redis.
 delete process.env.KV_REST_API_URL;
@@ -73,14 +74,48 @@ for (const svc of services) {
 console.log = quietLog;
 
 // ---------- 2. OpenAPI specs ----------
+// ---- documentation helpers (lib/docs.mjs) ----
+const docFor = (svc) => docs.services[svc.name] ?? { overview: '', endpoints: {} };
+const epDoc = (svc, ep) => docFor(svc).endpoints[`${ep.method} ${ep.path}`] ?? {};
+// Add field descriptions wherever a known property name appears without one.
+const describeFields = (schema) => {
+  if (!schema || typeof schema !== 'object') return schema;
+  const s = structuredClone(schema);
+  const walk = (node) => {
+    if (!node || typeof node !== 'object') return;
+    for (const [k, v] of Object.entries(node.properties ?? {})) {
+      if (v && typeof v === 'object' && docs.fields[k]) v.description = docs.fields[k];
+      walk(v);
+    }
+    if (node.items) walk(node.items);
+  };
+  walk(s);
+  return s;
+};
+const errorTable = (errors = []) =>
+  errors.length ? `\n\n**Errors**\n\n| Status | \`error\` | When |\n|---|---|---|\n${errors.map(([st, code, when]) => `| ${st} | \`${code}\` | ${when} |`).join('\n')}\n| 401 | \`unauthorized\` / \`unresolved_reference\` | Missing or wrong key, or an unresolved Passport reference |` : '';
+const errorResponses = (svc, ep) => {
+  const byStatus = {};
+  for (const [st, code, when] of epDoc(svc, ep).errors ?? []) (byStatus[st] ??= []).push({ code, when });
+  const res = {};
+  for (const [st, list] of Object.entries(byStatus)) {
+    res[st] = {
+      description: list.map((e) => `\`${e.code}\`: ${e.when}`).join(' '),
+      content: { 'application/json': { schema: errorSchema, examples: Object.fromEntries(list.map((e) => [e.code, { summary: e.when.replace(/`/g, ''), value: { error: e.code, message: e.when.replace(/`/g, '') } }])) } },
+    };
+  }
+  return res;
+};
+const serviceDoc = (svc) => `${svc.description}\n${docFor(svc).overview}\n${docs.auth}\n${docs.conventions}\n*Ridgeline is a fictional company; all data is sandbox data.*`;
+
 const specFor = (svc, { legacy = false } = {}) => ({
   openapi: '3.0.3',
   info: {
     title: `Ridgeline ${svc.title}${legacy ? ' (v1, deprecated)' : ''}`,
     version: legacy ? '1.4.0' : svc.version ?? '1.0.0',
     description: legacy
-      ? 'DEPRECATED. Superseded by v2 (2026-07). `stake` was a decimal dollar amount. Kept for spec history only.'
-      : `${svc.description}\n\nOwner: ${svc.owner}. Ridgeline is a fictional company; all data is sandbox data.`,
+      ? '**DEPRECATED.** Superseded by v2 (2026-07), where `stake` (decimal dollars) was replaced by `stake_minor` (integer cents). Kept for spec history only. Requests in this shape are rejected by the live API with `400 unsupported_field`.'
+      : serviceDoc(svc),
     contact: { name: svc.owner },
     'x-owner': svc.owner,
   },
@@ -89,7 +124,7 @@ const specFor = (svc, { legacy = false } = {}) => ({
     { url: `http://localhost:4100/${svc.name}`, description: 'Local (next dev)' },
   ],
   security: [{ bearerAuth: [] }],
-  tags: [{ name: svc.name, description: svc.description }],
+  tags: [{ name: svc.name, description: `${svc.description} Owner: ${svc.owner}.` }],
   paths: Object.fromEntries(
     Object.entries(
       svc.endpoints.reduce((acc, ep) => {
@@ -106,16 +141,20 @@ const specFor = (svc, { legacy = false } = {}) => ({
           tags: [svc.name],
           operationId: `${svc.name.replace(/-/g, '_')}_${ep.method.toLowerCase()}_${ep.path.split('/').filter(Boolean).slice(1).join('_')}`,
           summary: ep.summary,
+          description: (epDoc(svc, ep).description ?? ep.summary) + errorTable(epDoc(svc, ep).errors),
           parameters: (ep.query ?? []).map((q) => ({ name: q.name, in: 'query', required: false, description: q.description, schema: { type: 'string' }, example: q.example.startsWith('{{') ? undefined : q.example })),
           responses: {
-            [String(live?.status ?? 200)]: { description: 'Success', content: { 'application/json': { schema: ep.response ?? { type: 'object' }, ...(legacy ? {} : { example: live?.body }) } } },
-            400: { description: 'Invalid request', content: { 'application/json': { schema: errorSchema } } },
-            401: { description: 'Missing or invalid bearer key (or an unresolved Passport reference)', content: { 'application/json': { schema: errorSchema } } },
-            500: { description: 'Unexpected server error', content: { 'application/json': { schema: errorSchema } } },
+            [String(live?.status ?? 200)]: { description: 'Success', content: { 'application/json': { schema: describeFields(ep.response ?? { type: 'object' }), ...(legacy ? {} : { example: live?.body }) } } },
+            400: { description: 'Invalid request: missing fields, invalid JSON or invalid values.', content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[400] } } },
+            401: {
+              description: 'Missing or invalid bearer key, or an unresolved Passport reference.',
+              content: { 'application/json': { schema: errorSchema, examples: { unauthorized: { summary: 'Missing key or another API\'s key', value: docs.commonErrors[401] }, unresolved_reference: { summary: 'A {{vault:...}} reference skipped the proxy', value: { error: 'unresolved_reference', message: 'Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy.' } } } } },
+            },
+            500: { description: 'Unexpected server error.', content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[500] } } },
+            ...errorResponses(svc, ep),
           },
         };
-        if (request) op.requestBody = { required: true, content: { 'application/json': { schema: request, example: JSON.parse(JSON.stringify(example).replace(/"\{\{boost_id\}\}"/g, '"BST-00001"')) } } };
-        if (svc.name === 'bets' && ep.method === 'POST') op.responses[403] = { description: 'Player not eligible or product not available in state', content: { 'application/json': { schema: errorSchema } } };
+        if (request) op.requestBody = { required: true, content: { 'application/json': { schema: describeFields(request), example: JSON.parse(JSON.stringify(example).replace(/"\{\{boost_id\}\}"/g, '"BST-00001"')) } } };
         (acc[ep.path] ??= {})[ep.method.toLowerCase()] = op;
         return acc;
       }, {}),
@@ -150,7 +189,7 @@ const defaultTests = (ep) => [
 const safeName = (n) => n.replace(/\s*:\s*/g, ' · ').replace(/\//g, ' ').replace(/\s+/g, ' ').trim();
 const requestItem = (svc, ep, { name, example, tests, auth } = {}) => {
   const live = captured[`${svc.name} ${ep.method} ${ep.path}`];
-  const req = { method: ep.method, header: [{ key: 'Content-Type', value: 'application/json' }], url: url(svc, ep), description: ep.summary, ...(body(ep, example) ? { body: body(ep, example) } : {}), ...(auth ? { auth } : {}) };
+  const req = { method: ep.method, header: [{ key: 'Content-Type', value: 'application/json' }], url: url(svc, ep), description: (epDoc(svc, ep).description ?? ep.summary) + errorTable(epDoc(svc, ep).errors), ...(body(ep, example) ? { body: body(ep, example) } : {}), ...(auth ? { auth } : {}) };
   return {
     name: safeName(name ?? ep.summary),
     request: req,
@@ -170,7 +209,7 @@ for (const svc of services) {
     `public/postman/${svc.name}.postman_collection.json`,
     collection(
       `Ridgeline · ${svc.title}`,
-      `${svc.description}\n\n**Owner:** ${svc.owner}\n**Auth:** Bearer \`{{${varName(svc.name)}}}\`. In the Passport environment this is \`{{vault:${svc.secretRef}}}\`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.`,
+      `${serviceDoc(svc)}\n\n## In this collection\n\nAuth is set once on the collection: Bearer \`{{${varName(svc.name)}}}\`. In the **Ridgeline Sandbox · Passport** environment that variable is \`{{vault:${svc.secretRef}}}\`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.`,
       svc.endpoints.map((ep) => requestItem(svc, ep)),
       { auth: bearer(svc.name), variable: [{ key: 'boost_id', value: 'BST-00001' }] },
     ),

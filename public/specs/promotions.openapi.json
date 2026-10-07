@@ -3,7 +3,7 @@
   "info": {
     "title": "Ridgeline Promotions API",
     "version": "1.0.0",
-    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\nOwner: Team Promotions. Ridgeline is a fictional company; all data is sandbox data.",
+    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
     "contact": {
       "name": "Team Promotions"
     },
@@ -32,7 +32,7 @@
   "tags": [
     {
       "name": "promotions",
-      "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost."
+      "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost. Owner: Team Promotions."
     }
   ],
   "paths": {
@@ -43,6 +43,7 @@
         ],
         "operationId": "promotions_get_boosts",
         "summary": "List boosts",
+        "description": "List boosts.",
         "parameters": [],
         "responses": {
           "200": {
@@ -59,7 +60,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -76,12 +77,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -96,6 +104,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -103,7 +127,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -120,6 +144,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
@@ -132,6 +160,7 @@
         ],
         "operationId": "promotions_post_boosts",
         "summary": "Create a boost",
+        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "parameters": [],
         "responses": {
           "201": {
@@ -152,13 +181,13 @@
                     "casino"
                   ],
                   "status": "active",
-                  "created_at": "2026-10-07T18:52:21.777Z"
+                  "created_at": "2026-10-07T18:57:35.931Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -175,12 +204,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -195,6 +231,53 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`market_not_found`: Unknown `market_id`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "market_not_found": {
+                    "summary": "Unknown market_id.",
+                    "value": {
+                      "error": "market_not_found",
+                      "message": "Unknown market_id."
                     }
                   }
                 }
@@ -202,7 +285,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -219,6 +302,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
@@ -239,16 +326,20 @@
                 ],
                 "properties": {
                   "name": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Display name."
                   },
                   "market_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Market ID from the markets API, e.g. `MKT-ML-001`."
                   },
                   "profit_boost_pct": {
-                    "type": "integer"
+                    "type": "integer",
+                    "description": "Extra profit on a winning boosted bet, as a whole-number percent (25 = +25% profit)."
                   },
                   "rewards_back_pct": {
-                    "type": "integer"
+                    "type": "integer",
+                    "description": "Share of the stake credited as rewards, as a whole-number percent (10 = 10% of stake)."
                   },
                   "products": {
                     "type": "array",
@@ -258,7 +349,8 @@
                         "sportsbook",
                         "casino"
                       ]
-                    }
+                    },
+                    "description": "Products the boost applies to."
                   }
                 }
               },
@@ -284,6 +376,7 @@
         ],
         "operationId": "promotions_post_boosts_claim",
         "summary": "Claim a boost for a player (caller must check eligibility first)",
+        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
         "parameters": [],
         "responses": {
           "201": {
@@ -297,13 +390,13 @@
                   "claim_id": "CLM-00002",
                   "boost_id": "BST-00001",
                   "player_id": "P-1001",
-                  "claimed_at": "2026-10-07T18:52:21.778Z"
+                  "claimed_at": "2026-10-07T18:57:35.931Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -320,12 +413,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -340,6 +440,53 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`boost_not_found`: Unknown `boost_id`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "boost_not_found": {
+                    "summary": "Unknown boost_id.",
+                    "value": {
+                      "error": "boost_not_found",
+                      "message": "Unknown boost_id."
                     }
                   }
                 }
@@ -347,7 +494,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -364,6 +511,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
@@ -381,10 +532,12 @@
                 ],
                 "properties": {
                   "boost_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Sandbox player ID, `P-1001` to `P-1005`."
                   },
                   "player_id": {
-                    "type": "string"
+                    "type": "string",
+                    "description": "Sandbox player ID, `P-1001` to `P-1005`."
                   }
                 }
               },
@@ -404,6 +557,7 @@
         ],
         "operationId": "promotions_get_boosts_claims",
         "summary": "List claims for a boost",
+        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.",
         "parameters": [
           {
             "name": "boost_id",
@@ -429,7 +583,7 @@
                       "claim_id": "CLM-00002",
                       "boost_id": "BST-00001",
                       "player_id": "P-1001",
-                      "claimed_at": "2026-10-07T18:52:21.778Z"
+                      "claimed_at": "2026-10-07T18:57:35.931Z"
                     }
                   ]
                 }
@@ -437,7 +591,7 @@
             }
           },
           "400": {
-            "description": "Invalid request",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
             "content": {
               "application/json": {
                 "schema": {
@@ -454,12 +608,19 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "missing_fields",
+                  "message": "Missing required field(s): player_id.",
+                  "fields": [
+                    "player_id"
+                  ]
                 }
               }
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
             "content": {
               "application/json": {
                 "schema": {
@@ -474,6 +635,22 @@
                     },
                     "message": {
                       "type": "string"
+                    }
+                  }
+                },
+                "examples": {
+                  "unauthorized": {
+                    "summary": "Missing key or another API's key",
+                    "value": {
+                      "error": "unauthorized",
+                      "message": "Missing or invalid bearer key for this API."
+                    }
+                  },
+                  "unresolved_reference": {
+                    "summary": "A {{vault:...}} reference skipped the proxy",
+                    "value": {
+                      "error": "unresolved_reference",
+                      "message": "Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy."
                     }
                   }
                 }
@@ -481,7 +658,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error",
+            "description": "Unexpected server error.",
             "content": {
               "application/json": {
                 "schema": {
@@ -498,6 +675,10 @@
                       "type": "string"
                     }
                   }
+                },
+                "example": {
+                  "error": "internal",
+                  "message": "Unexpected error."
                 }
               }
             }
