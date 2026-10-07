@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "3dabdc78-6b13-440a-bf89-f83993ab6259",
+    "_postman_id": "5b26bc88-6eb6-4bc8-90cc-163879c387db",
     "name": "Ridgeline · Promotions API",
     "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Owner:** Team Promotions\n**Auth:** Bearer `{{promotions_key}}`. In the Passport environment this is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "GET /v1/boosts · List boosts",
+      "name": "List boosts",
       "request": {
         "method": "GET",
         "header": [
@@ -35,7 +35,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"
             ]
           }
         }
@@ -73,12 +75,14 @@
             }
           ],
           "body": "{\n  \"boosts\": []\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "bae7af40-b173-46b1-a977-333f56d1c2e3"
         }
-      ]
+      ],
+      "id": "dbac44be-5730-4489-84c3-d8a734dbb091"
     },
     {
-      "name": "POST /v1/boosts · Create a boost",
+      "name": "Create a boost",
       "request": {
         "method": "POST",
         "header": [
@@ -115,7 +119,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
               "pm.collectionVariables.set('boost_id', pm.response.json().boost_id);"
             ]
           }
@@ -162,13 +168,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T17:26:18.295Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:52:21.777Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "e22210b5-fecb-446a-bf85-7a92bf74c33f"
         }
-      ]
+      ],
+      "id": "09aa5171-3b54-490e-964d-20f0482379bd"
     },
     {
-      "name": "POST /v1/boosts/claim · Claim a boost for a player (caller must check eligibility first)",
+      "name": "Claim a boost for a player (caller must check eligibility first)",
       "request": {
         "method": "POST",
         "header": [
@@ -206,7 +214,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"
             ]
           }
         }
@@ -253,13 +263,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "da92f16e-586b-4d79-a272-4c7cd393989f"
         }
-      ]
+      ],
+      "id": "fdf7fef1-8c45-47ed-8d29-b5641093eae1"
     },
     {
-      "name": "GET /v1/boosts/claims · List claims for a boost",
+      "name": "List claims for a boost",
       "request": {
         "method": "GET",
         "header": [
@@ -295,7 +307,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"
             ]
           }
         }
@@ -340,10 +354,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n    }\n  ]\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json",
+          "id": "20390109-f8df-49d1-b9cf-7dcc3ee26317"
         }
-      ]
+      ],
+      "id": "464f2970-768f-42d0-981a-5edb53f55683"
     }
   ],
   "auth": {

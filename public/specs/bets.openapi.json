@@ -112,7 +112,7 @@
                   "potential_payout_minor": 1770,
                   "boost_id": null,
                   "rewards_earned_minor": 0,
-                  "placed_at": "2026-10-07T17:26:18.296Z"
+                  "placed_at": "2026-10-07T18:52:21.778Z"
                 }
               }
             }
@@ -163,6 +163,28 @@
           },
           "403": {
             "description": "Player not eligible or product not available in state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -293,7 +315,7 @@
                       "potential_payout_minor": 1770,
                       "boost_id": null,
                       "rewards_earned_minor": 0,
-                      "placed_at": "2026-10-07T17:26:18.296Z"
+                      "placed_at": "2026-10-07T18:52:21.778Z"
                     }
                   ]
                 }
@@ -324,6 +346,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {

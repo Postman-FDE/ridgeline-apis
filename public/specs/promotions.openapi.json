@@ -101,6 +101,28 @@
                 }
               }
             }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       },
@@ -130,7 +152,7 @@
                     "casino"
                   ],
                   "status": "active",
-                  "created_at": "2026-10-07T17:26:18.295Z"
+                  "created_at": "2026-10-07T18:52:21.777Z"
                 }
               }
             }
@@ -159,6 +181,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -253,7 +297,7 @@
                   "claim_id": "CLM-00002",
                   "boost_id": "BST-00001",
                   "player_id": "P-1001",
-                  "claimed_at": "2026-10-07T17:26:18.296Z"
+                  "claimed_at": "2026-10-07T18:52:21.778Z"
                 }
               }
             }
@@ -282,6 +326,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -363,7 +429,7 @@
                       "claim_id": "CLM-00002",
                       "boost_id": "BST-00001",
                       "player_id": "P-1001",
-                      "claimed_at": "2026-10-07T17:26:18.296Z"
+                      "claimed_at": "2026-10-07T18:52:21.778Z"
                     }
                   ]
                 }
@@ -394,6 +460,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {

@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "e9940523-4551-4f5f-b5a4-297a927c7054",
+    "_postman_id": "1c6f187c-0ced-475d-838c-6f8ef82078e9",
     "name": "Ridgeline · Championship Rewards Boost (E2E)",
     "description": "The ticket, done right: create the boost, check **player-limits** and **geo-compliance** before every offer, claim only for eligible players, place a boosted bet in `stake_minor`, then assert the **end state**: no self-excluded or cool-off player holds a claim. Run in order with the Collection Runner. Each request uses its own service key via a Passport reference.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -111,13 +111,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T17:26:18.295Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:52:21.777Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "b5e829fc-b079-4bf7-ae32-09d2bdecda6c"
         }
-      ]
+      ],
+      "id": "ba77a110-9c56-4ac4-9619-4a394946485d"
     },
     {
-      "name": "2. Eligibility: P-1001 (NJ, active)",
+      "name": "2. Eligibility · P-1001 (NJ, active)",
       "request": {
         "method": "POST",
         "header": [
@@ -222,13 +224,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "80a2f31a-3e5a-4a9d-8256-2ef03759f3cf"
         }
-      ]
+      ],
+      "id": "8c6a71ed-2712-4c26-9f08-7810d77d7d91"
     },
     {
-      "name": "3. Eligibility: P-1003 (self-excluded) → do not offer",
+      "name": "3. Eligibility · P-1003 (self-excluded) → do not offer",
       "request": {
         "method": "POST",
         "header": [
@@ -335,13 +339,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "871b4432-2b44-4837-bcfa-412eec4204ce"
         }
-      ]
+      ],
+      "id": "f8cadf21-3c03-4e2d-8d95-de0f02209fdf"
     },
     {
-      "name": "4. Eligibility: P-1005 (cool-off) → do not offer",
+      "name": "4. Eligibility · P-1005 (cool-off) → do not offer",
       "request": {
         "method": "POST",
         "header": [
@@ -446,13 +452,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "c2819602-7574-4c60-9231-7b80a2b952ab"
         }
-      ]
+      ],
+      "id": "53bce087-25db-4521-8d4c-77b6f0b8cc1f"
     },
     {
-      "name": "5. Geo: P-1004 casino in NY → sportsbook only",
+      "name": "5. Geo · P-1004 casino in NY → sportsbook only",
       "request": {
         "method": "POST",
         "header": [
@@ -558,9 +566,11 @@
             }
           ],
           "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "34bd5c5c-7825-4ec0-b1b7-b3db7ff94dac"
         }
-      ]
+      ],
+      "id": "80c8f6d1-5e79-4ad8-91eb-50b71cf6a7a6"
     },
     {
       "name": "6. Claim boost for eligible P-1001",
@@ -668,10 +678,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "b3c4f8c0-e2d9-40de-9825-3eb47c3f08d3"
         }
-      ]
+      ],
+      "id": "6b55cd0c-46bd-49e1-a494-45ae212ef551"
     },
     {
       "name": "7. Place boosted bet (stake_minor = 1000)",
@@ -780,13 +792,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "3874ca1f-e698-4c7c-b53b-04819816eafd"
         }
-      ]
+      ],
+      "id": "cf847ba8-552b-40d2-9a3d-73d569d75087"
     },
     {
-      "name": "8. END STATE: no protected player holds a claim",
+      "name": "8. END STATE · no protected player holds a claim",
       "request": {
         "method": "GET",
         "header": [
@@ -889,13 +903,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T17:26:18.296Z\"\n    }\n  ]\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:52:21.778Z\"\n    }\n  ]\n}",
+          "_postman_previewlanguage": "json",
+          "id": "d02bd459-563b-42c0-a591-c517fb1435ee"
         }
-      ]
+      ],
+      "id": "de3a7c61-469f-4dee-a9b8-0dbe012dc33e"
     },
     {
-      "name": "9. END STATE: Rewards credited to P-1001",
+      "name": "9. END STATE · Rewards credited to P-1001",
       "request": {
         "method": "POST",
         "header": [
@@ -1001,9 +1017,11 @@
             }
           ],
           "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "0ca9f47b-6684-43a3-a78b-5937de74d76a"
         }
-      ]
+      ],
+      "id": "cd281cbc-46ca-420a-95fc-85745ed44cff"
     }
   ],
   "variable": [

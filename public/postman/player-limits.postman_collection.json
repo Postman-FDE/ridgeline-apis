@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "f697c2aa-1d83-4df3-b718-90f04cf2d013",
+    "_postman_id": "f4fe37cd-5c9c-43f8-9321-52e3475ca68f",
     "name": "Ridgeline · Player Limits API",
     "description": "Responsible-gaming eligibility: self-exclusion, cool-off and daily wager limits. **The single source of truth for player protection. Never reimplement this logic in a caller.** Self-excluded and cool-off players must not receive promotional offers (`may_receive_promotions: false`).\n\n**Owner:** Team Responsible Gaming\n**Auth:** Bearer `{{player_limits_key}}`. In the Passport environment this is `{{vault:RIDGELINE_PLAYER_LIMITS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "POST /v1/eligibility/check · Check whether a player may wager / receive promotions",
+      "name": "Check whether a player may wager receive promotions",
       "request": {
         "method": "POST",
         "header": [
@@ -45,7 +45,10 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+              "pm.test('matches the documented response schema', () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"required\":[\"player_id\",\"eligible\",\"reasons\",\"may_receive_promotions\"],\"properties\":{\"player_id\":{\"type\":\"string\"},\"product\":{\"type\":\"string\",\"enum\":[\"sportsbook\",\"casino\"]},\"eligible\":{\"type\":\"boolean\"},\"reasons\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"enum\":[\"SELF_EXCLUDED\",\"COOL_OFF\",\"DAILY_WAGER_LIMIT\"]}},\"may_receive_promotions\":{\"type\":\"boolean\"},\"remaining_daily_wager_minor\":{\"type\":\"integer\"},\"checked_at\":{\"type\":\"string\",\"format\":\"date-time\"}}}));"
             ]
           }
         }
@@ -92,13 +95,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "cacaa238-b883-4d85-bd15-1dd51e9bfdc2"
         }
-      ]
+      ],
+      "id": "bf073a74-0844-4a9d-8be9-c7aba428d683"
     },
     {
-      "name": "POST /v1/limits · Get a player's limits and status",
+      "name": "Get a player's limits and status",
       "request": {
         "method": "POST",
         "header": [
@@ -135,7 +140,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"
             ]
           }
         }
@@ -182,9 +189,11 @@
             }
           ],
           "body": "{\n  \"player_id\": \"P-1002\",\n  \"status\": \"active\",\n  \"daily_wager_limit_minor\": 5000,\n  \"wagered_today_minor\": 3000\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "8e6cfd78-b702-4b0c-b703-4aa9b49ef1cb"
         }
-      ]
+      ],
+      "id": "b47bd020-eba9-4185-bac2-1be76a0643ee"
     }
   ],
   "auth": {

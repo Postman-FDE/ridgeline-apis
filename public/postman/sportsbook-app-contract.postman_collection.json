@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "3b6e4a7d-ce57-4b06-ad52-28878502088f",
+    "_postman_id": "968962cc-7d39-4236-ab44-804881ed0795",
     "name": "Ridgeline · sportsbook-app consumer contract",
     "description": "Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer's own tests but breaks these fails the build.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "1. bets: response shape the app renders",
+      "name": "1. bets · response shape the app renders",
       "request": {
         "method": "POST",
         "header": [
@@ -111,13 +111,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "e1a7215d-2ef0-49e4-9b73-310805670d26"
         }
-      ]
+      ],
+      "id": "dd9ccbba-224c-468f-b1d5-d6967012c72b"
     },
     {
-      "name": "2. bets: legacy `stake` is rejected loudly",
+      "name": "2. bets · legacy `stake` is rejected loudly",
       "request": {
         "method": "POST",
         "header": [
@@ -221,13 +223,15 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "1b5bf80a-e503-43b9-a1dc-52e078955843"
         }
-      ]
+      ],
+      "id": "f378f678-ebff-4ae6-bf7c-2e71a8043304"
     },
     {
-      "name": "3. player-limits: fields the app gates offers on",
+      "name": "3. player-limits · fields the app gates offers on",
       "request": {
         "method": "POST",
         "header": [
@@ -333,10 +337,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T17:26:18.296Z\"\n}",
-          "_postman_previewlanguage": "json"
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:52:21.778Z\"\n}",
+          "_postman_previewlanguage": "json",
+          "id": "10983871-2729-4342-b3f8-19ea2f76c889"
         }
-      ]
+      ],
+      "id": "b8b05eba-3a41-4bb1-a58a-39b5c66212c0"
     }
   ]
 }

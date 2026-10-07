@@ -103,7 +103,7 @@
                   ],
                   "may_receive_promotions": false,
                   "remaining_daily_wager_minor": 50000,
-                  "checked_at": "2026-10-07T17:26:18.296Z"
+                  "checked_at": "2026-10-07T18:52:21.778Z"
                 }
               }
             }
@@ -132,6 +132,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {
@@ -240,6 +262,28 @@
           },
           "401": {
             "description": "Missing or invalid bearer key (or an unresolved Passport reference)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "error",
+                    "message"
+                  ],
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
             "content": {
               "application/json": {
                 "schema": {

@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "e4214280-9ffc-4567-8815-7b9a529fae96",
+    "_postman_id": "5d14fa8f-6b6d-46e3-819f-aabf69d21267",
     "name": "Ridgeline · Markets API",
     "description": "Events and odds for the sportsbook. Read-only.\n\n**Owner:** Team Trading\n**Auth:** Bearer `{{markets_key}}`. In the Passport environment this is `{{vault:RIDGELINE_MARKETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. No one holds the raw key.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "GET /v1/events · List events",
+      "name": "List events",
       "request": {
         "method": "GET",
         "header": [
@@ -35,7 +35,10 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+              "pm.test('matches the documented response schema', () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"events\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}}}}));"
             ]
           }
         }
@@ -73,12 +76,14 @@
             }
           ],
           "body": "{\n  \"events\": [\n    {\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"name\": \"Championship Final: Harbor Hawks vs. Summit Bears\",\n      \"starts_at\": \"2026-10-25T00:30:00Z\",\n      \"league\": \"Sandbox League\"\n    }\n  ]\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "40727388-cd56-4566-baee-fd9c02689687"
         }
-      ]
+      ],
+      "id": "8ab3b190-0d3b-4719-b7de-d8ab58a70858"
     },
     {
-      "name": "GET /v1/markets · List markets with odds for an event",
+      "name": "List markets with odds for an event",
       "request": {
         "method": "GET",
         "header": [
@@ -113,7 +118,10 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "pm.test('2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));"
+              "pm.test('status is 2xx', () => pm.expect(pm.response.code).to.be.within(200, 299));",
+              "pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+              "pm.test('matches the documented response schema', () => pm.response.to.have.jsonSchema({\"type\":\"object\",\"properties\":{\"markets\":{\"type\":\"array\",\"items\":{\"type\":\"object\"}}}}));"
             ]
           }
         }
@@ -158,9 +166,11 @@
             }
           ],
           "body": "{\n  \"markets\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"moneyline\",\n      \"name\": \"Moneyline\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-HAWKS\",\n          \"name\": \"Harbor Hawks\",\n          \"american_odds\": -130,\n          \"decimal_odds\": 1.77\n        },\n        {\n          \"outcome_id\": \"OUT-BEARS\",\n          \"name\": \"Summit Bears\",\n          \"american_odds\": 110,\n          \"decimal_odds\": 2.1\n        }\n      ]\n    },\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"event_id\": \"EVT-FINAL-2026\",\n      \"type\": \"total\",\n      \"name\": \"Total Points 47.5\",\n      \"outcomes\": [\n        {\n          \"outcome_id\": \"OUT-OVER\",\n          \"name\": \"Over 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        },\n        {\n          \"outcome_id\": \"OUT-UNDER\",\n          \"name\": \"Under 47.5\",\n          \"american_odds\": -110,\n          \"decimal_odds\": 1.91\n        }\n      ]\n    }\n  ]\n}",
-          "_postman_previewlanguage": "json"
+          "_postman_previewlanguage": "json",
+          "id": "5fd7e8ca-87a7-4f86-8bcf-59fb3fc63b61"
         }
-      ]
+      ],
+      "id": "13a42de4-de29-489b-964f-c5bdc87fed43"
     }
   ],
   "auth": {

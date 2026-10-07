@@ -1,3 +1,27 @@
+cloudResources:
+  collections:
+    ../public/postman/bets.postman_collection.json: 50798902-e8fe8a56-f330-4a06-bb49-bfa9790aa8d5
+    ../public/postman/e2e-championship-boost.postman_collection.json: 50798902-8b80ec43-81cf-4523-a187-a16a094516f4
+    ../public/postman/geo-compliance.postman_collection.json: 50798902-6030fbda-9232-4b7f-9f4d-db084c7946fb
+    ../public/postman/markets.postman_collection.json: 50798902-e5494392-7cb9-4925-b524-b7bc23ac1f8a
+    ../public/postman/player-limits.postman_collection.json: 50798902-0db61863-8817-4c16-9fdc-3726719da426
+    ../public/postman/promotions.postman_collection.json: 50798902-9cc42ac2-aa4b-4cd1-81e1-3f0fb4bf92e3
+    ../public/postman/sportsbook-app-contract.postman_collection.json: 50798902-a8a0b91a-4cbe-4fc0-95ed-2eb41157781c
+    ../public/postman/test-suite.postman_collection.json: 50798902-eb5c239b-b902-4f93-ac40-a0349679faac
+    ../public/postman/wallet.postman_collection.json: 50798902-89042a2e-ba96-4aee-b63b-7341940b160f
+  environments:
+    ../public/postman/local.postman_environment.json: 50798902-afb6720d-5aad-4aee-bad6-aebb739c4128
+    ../public/postman/sandbox.postman_environment.json: 50798902-ffae1702-2d98-4cf9-88be-a8984cfbaa27
+  globals:
+    ../postman/globals/workspace.globals.yaml: a75b0501-48cb-4926-8737-4b8d97b16970
+  specs:
+    ../public/specs/bets.openapi.json: aa09f66e-4fed-43f7-ab97-d6ab6b5507f7
+    ../public/specs/geo-compliance.openapi.json: 429425f6-f823-4875-8374-6bfe0924fc23
+    ../public/specs/history/bets.v1.openapi.json: 14150850-2dd6-4a8d-b9e8-7271d8ae2512
+    ../public/specs/markets.openapi.json: 7064ff71-23a2-467f-805e-c227f3c57957
+    ../public/specs/player-limits.openapi.json: 6b566fc2-61ce-4d5c-9b6d-ad045d525dee
+    ../public/specs/promotions.openapi.json: 0d8b8c94-d069-473d-ba44-4da93acf2b71
+    ../public/specs/wallet.openapi.json: 3dc0b728-838d-4384-a7bc-47c5b6637c8f
 localResources:
   collections:
     - ../public/postman/bets.postman_collection.json
@@ -7,10 +31,18 @@ localResources:
     - ../public/postman/player-limits.postman_collection.json
     - ../public/postman/promotions.postman_collection.json
     - ../public/postman/sportsbook-app-contract.postman_collection.json
+    - ../public/postman/test-suite.postman_collection.json
     - ../public/postman/wallet.postman_collection.json
   environments:
     - ../public/postman/local.postman_environment.json
     - ../public/postman/sandbox.postman_environment.json
+  specs:
+    - ../public/specs/bets.openapi.json
+    - ../public/specs/geo-compliance.openapi.json
+    - ../public/specs/markets.openapi.json
+    - ../public/specs/player-limits.openapi.json
+    - ../public/specs/promotions.openapi.json
+    - ../public/specs/wallet.openapi.json
+    - ../public/specs/history/bets.v1.openapi.json
 workspace:
-  id: 7897c56d-f973-4545-86af-0fe47e5ecff4
-  name: My Workspace
+  id: d70d54a8-6efc-43f1-ad84-32090757737c

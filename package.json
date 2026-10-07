@@ -18,7 +18,8 @@
     "demo:env": "node --env-file-if-exists=.env.local scripts/demo-env.mjs",
     "reset": "bash -c 'set -a; [ -f .env.local ] && . ./.env.local; set +a; bash scripts/demo-reset.sh'",
     "local": "bash scripts/local.sh",
-    "postman:push": "node --env-file-if-exists=.env.local scripts/postman-push.mjs"
+    "postman:push": "node --env-file-if-exists=.env.local scripts/postman-push.mjs",
+    "test:postman": "node --env-file-if-exists=.env.local scripts/postman-test.mjs"
   },
   "dependencies": {
     "next": "^16.4.0",
