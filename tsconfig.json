@@ -36,7 +36,8 @@
     ".next/dev/types/**/*.ts"
   ],
   "exclude": [
+    "demo",
     "node_modules",
-    "demo"
+    "sdks"
   ]
 }

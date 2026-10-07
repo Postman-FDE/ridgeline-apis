@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "efddd063-c57f-4430-b377-02346dc050f3",
+    "_postman_id": "2d50129c-d6f8-49b1-b3bd-8fcf5be2d544",
     "name": "Ridgeline · sportsbook-app consumer contract",
     "description": "Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer's own tests but breaks these fails the build.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -27,7 +27,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
@@ -82,7 +82,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake_minor\": 500\n}",
@@ -111,12 +111,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:02:15.131Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "0c01ae45-5556-441a-922c-cb9ab94250d4"
+          "id": "40201ded-bbe0-4d19-a4fa-25d796d034fb"
         }
       ],
-      "id": "1ba7ce02-8092-4257-b4fd-05ae4e99ad94"
+      "id": "3e407205-c600-4787-a778-645441c39244"
     },
     {
       "name": "2. bets · legacy `stake` is rejected loudly",
@@ -139,7 +139,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
@@ -194,7 +194,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-TOT-001\",\n      \"outcome_id\": \"OUT-OVER\"\n    }\n  ],\n  \"stake\": 5\n}",
@@ -223,12 +223,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:02:15.131Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "d9bb0e7b-c436-4f0a-a6fc-c2f231dbd3be"
+          "id": "68af08f2-3017-49d7-8801-4e436df1441c"
         }
       ],
-      "id": "a36b2fa3-1d4e-482d-83eb-d17986c8ae2f"
+      "id": "f266f1cc-5abf-4e93-a1e0-a7b1ba57aebe"
     },
     {
       "name": "3. player-limits · fields the app gates offers on",
@@ -252,7 +252,7 @@
             "check"
           ]
         },
-        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -308,7 +308,7 @@
                 "check"
               ]
             },
-            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -337,12 +337,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:02:15.131Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "acf108aa-f588-4873-a0e3-5fa3719e70b1"
+          "id": "be6482d5-0b83-400c-b8f2-19f896f37824"
         }
       ],
-      "id": "529f3fa4-e256-4cd1-9438-1d5798cd7d76"
+      "id": "6c9149a3-b4e2-4bc2-b033-4d38ce0e6f9e"
     }
   ]
 }

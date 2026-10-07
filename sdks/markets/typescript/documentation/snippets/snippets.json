@@ -1,0 +1,25 @@
+{
+  "endpoints": {
+    "/v1/events": {
+      "get": "import { RidgelineMarkets } from 'ridgeline-markets';\n\n(async () => {\n  const ridgelineMarkets = new RidgelineMarkets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelineMarkets.markets.marketsGetEvents();\n\n  console.log(data);\n})();\n"
+    },
+    "/v1/markets": {
+      "get": "import { RidgelineMarkets } from 'ridgeline-markets';\n\n(async () => {\n  const ridgelineMarkets = new RidgelineMarkets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelineMarkets.markets.marketsGetMarkets({\n      eventId: \"event_id\",\n  });\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/events": {
+      "get": "{ 'events': [{  }] }"
+    },
+    "/v1/markets": {
+      "get": "{ 'markets': [{  }] }"
+    }
+  },
+  "example": "import { RidgelineMarkets } from 'ridgeline-markets';\n\n(async () => {\n  const ridgelineMarkets = new RidgelineMarkets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelineMarkets.markets.marketsGetEvents();\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelineMarkets({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelineMarkets();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

@@ -13,9 +13,12 @@ cloudResources:
     ../postman/documents/WORKSPACE-README.md: 620e2572-2b06-4731-840a-0fb2e66acd4c
   environments:
     ../public/postman/local.postman_environment.json: 50798902-afb6720d-5aad-4aee-bad6-aebb739c4128
+    ../public/postman/mock.postman_environment.json: 50798902-4cec17f6-7b99-4b14-b958-f03fe0311855
     ../public/postman/sandbox.postman_environment.json: 50798902-ffae1702-2d98-4cf9-88be-a8984cfbaa27
   globals:
     ../postman/globals/workspace.globals.yaml: a75b0501-48cb-4926-8737-4b8d97b16970
+  mocks:
+    ../postman/mocks/ridgeline/config.yaml: 2f5d98b0-0e6c-4b28-8a2f-e2241a6b4ab7
   specs:
     ../public/specs/bets.openapi.json: aa09f66e-4fed-43f7-ab97-d6ab6b5507f7
     ../public/specs/geo-compliance.openapi.json: 429425f6-f823-4875-8374-6bfe0924fc23
@@ -39,6 +42,7 @@ localResources:
     - ../postman/documents/WORKSPACE-README.md
   environments:
     - ../public/postman/local.postman_environment.json
+    - ../public/postman/mock.postman_environment.json
     - ../public/postman/sandbox.postman_environment.json
   specs:
     - ../public/specs/bets.openapi.json

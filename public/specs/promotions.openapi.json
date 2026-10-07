@@ -3,7 +3,7 @@
   "info": {
     "title": "Ridgeline Promotions API",
     "version": "1.0.0",
-    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
+    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Promotions API**, owned by **Team Promotions**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Promotions API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Promotions. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_PROMOTIONS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
     "contact": {
       "name": "Team Promotions"
     },
@@ -43,7 +43,7 @@
         ],
         "operationId": "promotions_get_boosts",
         "summary": "List boosts",
-        "description": "List boosts.",
+        "description": "List boosts.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [],
         "responses": {
           "200": {
@@ -60,7 +60,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. Fix the input: add the fields listed in `fields`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -89,7 +89,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -127,7 +127,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -160,7 +160,7 @@
         ],
         "operationId": "promotions_post_boosts",
         "summary": "Create a boost",
-        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. | yes | Look up a valid `market_id` with markets `GET /v1/markets`, then retry. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [],
         "responses": {
           "201": {
@@ -181,13 +181,13 @@
                     "casino"
                   ],
                   "status": "active",
-                  "created_at": "2026-10-07T18:57:35.931Z"
+                  "created_at": "2026-10-07T20:02:15.130Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. Fix the input: add the fields listed in `fields`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -216,7 +216,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -254,7 +254,7 @@
             }
           },
           "404": {
-            "description": "`market_not_found`: Unknown `market_id`.",
+            "description": "`market_not_found`: Unknown `market_id`. Recoverable: yes. Look up a valid `market_id` with markets `GET /v1/markets`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -285,7 +285,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -376,7 +376,7 @@
         ],
         "operationId": "promotions_post_boosts_claim",
         "summary": "Claim a boost for a player (caller must check eligibility first)",
-        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. | yes | Look up the boost with promotions `GET /v1/boosts`, or create it first. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [],
         "responses": {
           "201": {
@@ -390,13 +390,13 @@
                   "claim_id": "CLM-00002",
                   "boost_id": "BST-00001",
                   "player_id": "P-1001",
-                  "claimed_at": "2026-10-07T18:57:35.931Z"
+                  "claimed_at": "2026-10-07T20:02:15.130Z"
                 }
               }
             }
           },
           "400": {
-            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. Fix the input: add the fields listed in `fields`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -425,7 +425,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -463,7 +463,7 @@
             }
           },
           "404": {
-            "description": "`boost_not_found`: Unknown `boost_id`.",
+            "description": "`boost_not_found`: Unknown `boost_id`. Recoverable: yes. Look up the boost with promotions `GET /v1/boosts`, or create it first.",
             "content": {
               "application/json": {
                 "schema": {
@@ -494,7 +494,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -557,7 +557,7 @@
         ],
         "operationId": "promotions_get_boosts_claims",
         "summary": "List claims for a boost",
-        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.",
+        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [
           {
             "name": "boost_id",
@@ -583,7 +583,7 @@
                       "claim_id": "CLM-00002",
                       "boost_id": "BST-00001",
                       "player_id": "P-1001",
-                      "claimed_at": "2026-10-07T18:57:35.931Z"
+                      "claimed_at": "2026-10-07T20:02:15.130Z"
                     }
                   ]
                 }
@@ -591,7 +591,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. Fix the input: add the fields listed in `fields`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -620,7 +620,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -658,7 +658,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -692,7 +692,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Use the Passport reference {{vault:RIDGELINE_PROMOTIONS_KEY}}. Never a raw key."
+        "description": "Send this API's own key as a Passport reference, {{vault:RIDGELINE_PROMOTIONS_KEY}}, never a raw key.\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Promotions API**, owned by **Team Promotions**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Promotions API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Promotions. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_PROMOTIONS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n"
       }
     }
   }

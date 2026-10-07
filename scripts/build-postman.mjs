@@ -67,7 +67,8 @@ for (const svc of services) {
       body: ep.method === 'GET' ? undefined : JSON.stringify(fill(ep.example)),
     }));
     const body = await res.json();
-    captured[`${svc.name} ${ep.method} ${ep.path}`] = { status: res.status, body };
+    const headers = ['content-type'].filter((h) => res.headers.get(h)).map((h) => ({ key: h.replace(/(^|-)([a-z])/g, (m) => m.toUpperCase()), value: res.headers.get(h) }));
+    captured[`${svc.name} ${ep.method} ${ep.path}`] = { status: res.status, body, headers };
     for (const [k, field] of Object.entries(ep.capture ?? {})) ctx[k] = body[field];
   }
 }
@@ -92,21 +93,22 @@ const describeFields = (schema) => {
   walk(s);
   return s;
 };
+const handling = (code) => docs.errorHandling[code] ?? { recoverable: 'maybe', action: 'See the message.' };
 const errorTable = (errors = []) =>
-  errors.length ? `\n\n**Errors**\n\n| Status | \`error\` | When |\n|---|---|---|\n${errors.map(([st, code, when]) => `| ${st} | \`${code}\` | ${when} |`).join('\n')}\n| 401 | \`unauthorized\` / \`unresolved_reference\` | Missing or wrong key, or an unresolved Passport reference |` : '';
+  `\n\n**Errors** (with what a client or agent should do)\n\n| Status | \`error\` | When | Recoverable | What to do |\n|---|---|---|---|---|\n${errors.map(([st, code, when]) => `| ${st} | \`${code}\` | ${when} | ${handling(code).recoverable} | ${handling(code).action} |`).join('\n')}${errors.length ? '\n' : ''}| 400 | \`missing_fields\` | A required field is missing | ${handling('missing_fields').recoverable} | ${handling('missing_fields').action} |\n| 401 | \`unauthorized\` | Missing key, or another API's key | ${handling('unauthorized').recoverable} | ${handling('unauthorized').action} |\n| 401 | \`unresolved_reference\` | A Passport reference skipped the proxy | ${handling('unresolved_reference').recoverable} | ${handling('unresolved_reference').action} |`;
 const errorResponses = (svc, ep) => {
   const byStatus = {};
   for (const [st, code, when] of epDoc(svc, ep).errors ?? []) (byStatus[st] ??= []).push({ code, when });
   const res = {};
   for (const [st, list] of Object.entries(byStatus)) {
     res[st] = {
-      description: list.map((e) => `\`${e.code}\`: ${e.when}`).join(' '),
+      description: list.map((e) => `\`${e.code}\`: ${e.when} Recoverable: ${handling(e.code).recoverable}. ${handling(e.code).action}`).join(' '),
       content: { 'application/json': { schema: errorSchema, examples: Object.fromEntries(list.map((e) => [e.code, { summary: e.when.replace(/`/g, ''), value: { error: e.code, message: e.when.replace(/`/g, '') } }])) } },
     };
   }
   return res;
 };
-const serviceDoc = (svc) => `${svc.description}\n${docFor(svc).overview}\n${docs.auth}\n${docs.conventions}\n*Ridgeline is a fictional company; all data is sandbox data.*`;
+const serviceDoc = (svc) => `${svc.description}\n${docFor(svc).overview}\n${docs.auth}\n${docs.getAccess(svc)}\n${docs.conventions}\n*Ridgeline is a fictional company; all data is sandbox data.*`;
 
 const specFor = (svc, { legacy = false } = {}) => ({
   openapi: '3.0.3',
@@ -145,12 +147,12 @@ const specFor = (svc, { legacy = false } = {}) => ({
           parameters: (ep.query ?? []).map((q) => ({ name: q.name, in: 'query', required: false, description: q.description, schema: { type: 'string' }, example: q.example.startsWith('{{') ? undefined : q.example })),
           responses: {
             [String(live?.status ?? 200)]: { description: 'Success', content: { 'application/json': { schema: describeFields(ep.response ?? { type: 'object' }), ...(legacy ? {} : { example: live?.body }) } } },
-            400: { description: 'Invalid request: missing fields, invalid JSON or invalid values.', content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[400] } } },
+            400: { description: `Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. ${handling('missing_fields').action}`, content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[400] } } },
             401: {
-              description: 'Missing or invalid bearer key, or an unresolved Passport reference.',
+              description: `Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. ${handling('unauthorized').action} ${handling('unresolved_reference').action}`,
               content: { 'application/json': { schema: errorSchema, examples: { unauthorized: { summary: 'Missing key or another API\'s key', value: docs.commonErrors[401] }, unresolved_reference: { summary: 'A {{vault:...}} reference skipped the proxy', value: { error: 'unresolved_reference', message: 'Received an unresolved Passport reference. Route this call through the Passport Secure Access Proxy.' } } } } },
             },
-            500: { description: 'Unexpected server error.', content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[500] } } },
+            500: { description: `Unexpected server error. Recoverable: maybe. ${handling('internal').action}`, content: { 'application/json': { schema: errorSchema, example: docs.commonErrors[500] } } },
             ...errorResponses(svc, ep),
           },
         };
@@ -160,7 +162,7 @@ const specFor = (svc, { legacy = false } = {}) => ({
       }, {}),
     ),
   ),
-  components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', description: `Use the Passport reference {{vault:${svc.secretRef}}}. Never a raw key.` } } },
+  components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', description: `Send this API's own key as a Passport reference, {{vault:${svc.secretRef}}}, never a raw key.\n${docs.getAccess(svc)}` } } },
 });
 
 for (const svc of services) out(`public/specs/${svc.name}.openapi.json`, specFor(svc));
@@ -194,7 +196,7 @@ const requestItem = (svc, ep, { name, example, tests, auth } = {}) => {
     name: safeName(name ?? ep.summary),
     request: req,
     event: test(tests ?? defaultTests(ep)),
-    response: live ? [{ name: 'Example (captured from the handlers)', originalRequest: req, status: 'OK', code: live.status, header: [{ key: 'Content-Type', value: 'application/json' }], body: JSON.stringify(live.body, null, 2), _postman_previewlanguage: 'json' }] : [],
+    response: live ? [{ name: 'Example (captured from the handlers)', originalRequest: req, status: 'OK', code: live.status, header: live.headers?.length ? live.headers : [{ key: 'Content-Type', value: 'application/json' }], body: JSON.stringify(live.body, null, 2), _postman_previewlanguage: 'json' }] : [],
   };
 };
 
@@ -363,6 +365,7 @@ const env = (name, baseUrl, valueFor, note) => ({
   _postman_variable_scope: 'environment',
 });
 out('public/postman/sandbox.postman_environment.json', env('Ridgeline Sandbox · Passport', `https://${HOST}`, (s) => `{{vault:${s.secretRef}}}`, 'Keys are Passport references. Replace each with the exact reference shown by `passport whoami` (named or UUID form).'));
+out('public/postman/mock.postman_environment.json', env('Ridgeline Sandbox · Mock', process.env.MOCK_URL ?? 'https://ridgeline-sandbox.mock.postman.postman.dev', () => 'mock-ignores-auth', ''));
 out('public/postman/local.postman_environment.json', env('Ridgeline Sandbox · Local (no keys)', 'http://localhost:4100', () => '', 'next dev on :4100. Keys intentionally blank. For owner-only testing, paste a key from .env.local into the CURRENT value (never the initial value).'));
 
 // ---------- 5. Passport endpoint map ----------

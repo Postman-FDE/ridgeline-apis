@@ -85,6 +85,20 @@ Any agent can call an API. What changes with the CLI is that the agent's Postman
 
 What it costs: the git-native workspace commands are new (they were marked beta in the 1.29 CLI I started with), the auth state confused me once (`whoami` said signed in while `init` ran as a guest), and there's the unexplained drift above. And the one thing I'd flag: `push` treats local files as the source of truth and overwrites cloud copies. The default strategy only creates and updates, and `--push-strategy force-sync` also deletes, so keep that flag out of anything an agent runs unattended.
 
+## More Postman, also from the CLI
+
+| Feature | Command | What's here |
+|---|---|---|
+| **Mock server** | `npm run mock:build`, then `postman mock push` / `deploy` | One public mock for all six APIs at [ridgeline-sandbox.mock.postman.postman.dev](https://ridgeline-sandbox.mock.postman.postman.dev), generated from the collections' saved examples. Use the **Ridgeline Sandbox · Mock** environment |
+| **AI readiness** | `npm run ai-readiness` | Scores every spec and collection, writes [`docs/ai-readiness.md`](docs/ai-readiness.md), and fails below 75. Specs: Markets 95, the rest 80. Collections: 75 to 85 |
+| **SDKs** | `npm run sdk` (add `python go ...` for more languages) | Typed TypeScript SDKs for all six APIs in `sdks/`. Tested against the local API: a bet places, and a self-excluded player comes back as a typed `403` |
+| **Workspace overview** | `postman workspace push` | [`postman/documents/WORKSPACE-README.md`](postman/documents/WORKSPACE-README.md) is the workspace's overview page |
+
+Two findings worth knowing:
+
+- **The AI-readiness score is mostly a complexity score.** I added a real rate limit because the check said rate limiting was undetectable, and every spec dropped from 80 to 70. Rate limits are something an agent has to handle, so they count against it. The sandbox didn't need one, so it came out. What did help without costing points was a handling hint on every error code (recoverable or not, and what to do) and documented credential acquisition.
+- **The Context Graph doesn't see this workspace yet.** `postman context-graph ask` answers from the team's catalog and team-visible workspaces, and this one is personal. It needs to be team-visible, with the APIs registered in the API Catalog, before questions like "what consumes bets?" have anything to answer from.
+
 ## Documentation
 
 Every API is documented in its OpenAPI spec and in its Postman collection, generated from `lib/docs.mjs`:

@@ -1,0 +1,25 @@
+{
+  "endpoints": {
+    "/v1/wallet/balance": {
+      "post": "import { RidgelineWallet, WalletPostWalletBalanceRequest } from 'ridgeline-wallet';\n\n(async () => {\n  const ridgelineWallet = new RidgelineWallet({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  \n  const walletPostWalletBalanceRequest: WalletPostWalletBalanceRequest = {\t\n    playerId: \"player_id\"\n  };\n\n  const data = await ridgelineWallet.wallet.walletPostWalletBalance(walletPostWalletBalanceRequest);\n\n  console.log(data);\n})();\n"
+    },
+    "/v1/wallet/rewards/credit": {
+      "post": "import { RidgelineWallet, WalletPostWalletRewardsCreditRequest } from 'ridgeline-wallet';\n\n(async () => {\n  const ridgelineWallet = new RidgelineWallet({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  \n  const walletPostWalletRewardsCreditRequest: WalletPostWalletRewardsCreditRequest = {\t\n    playerId: \"player_id\",\n    amountMinor: 10,\n    reason: \"reason\",\n    idempotencyKey: \"idempotency_key\"\n  };\n\n  const data = await ridgelineWallet.wallet.walletPostWalletRewardsCredit(walletPostWalletRewardsCreditRequest);\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/wallet/balance": {
+      "post": "{  }"
+    },
+    "/v1/wallet/rewards/credit": {
+      "post": "{  }"
+    }
+  },
+  "example": "import { RidgelineWallet, WalletPostWalletBalanceRequest } from 'ridgeline-wallet';\n\n(async () => {\n  const ridgelineWallet = new RidgelineWallet({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  \n  const walletPostWalletBalanceRequest: WalletPostWalletBalanceRequest = {\t\n    playerId: \"player_id\"\n  };\n\n  const data = await ridgelineWallet.wallet.walletPostWalletBalance(walletPostWalletBalanceRequest);\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelineWallet({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelineWallet();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

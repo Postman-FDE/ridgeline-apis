@@ -10,13 +10,19 @@ Six small APIs for a fictional sportsbook and casino, each with its **own owner,
 | **Specs** | 7 OpenAPI 3.0 specs (including the deprecated bets v1, kept for history) |
 | **Collections** | 9: one per API, an end-to-end flow, a consumer contract, and a full test suite |
 | **Tests** | 81 requests, 292 assertions |
+| **Mock server** | [ridgeline-sandbox.mock.postman.postman.dev](https://ridgeline-sandbox.mock.postman.postman.dev), public, no keys needed |
+| **AI readiness** | Every spec and collection scores 75 to 95 ("Excellent") on Postman's AI-readiness check |
+| **SDKs** | Typed TypeScript SDKs for all six APIs, generated from the specs |
 | **Source of truth** | A git repo. Everything here is generated, linted and pushed with the Postman CLI |
 
 ---
 
 ## Start here
 
+**Fastest:** select **Ridgeline Sandbox · Mock**, open any collection, and hit Send. The mock server answers every endpoint with the documented example response, with no keys and nothing to run.
+
 1. Pick an environment (top right):
+   - **Ridgeline Sandbox · Mock**: the public mock server. Every request works; responses are the saved examples (no business logic).
    - **Ridgeline Sandbox · Passport**: keys are Passport references such as `{{vault:RIDGELINE_BETS_KEY}}`. Use this with the Passport proxy running.
    - **Ridgeline Sandbox · Local (no keys)**: `http://localhost:4100`. Keys are blank on purpose, so requests return `401` until you add a key to the *current* value.
 2. Open **Ridgeline · Test Suite** and run it with the **Collection Runner**. Every folder is order-independent.
@@ -86,6 +92,58 @@ Nobody is handed a raw key. You request access in **Postman Passport** and get a
 
 ---
 
+## Try it without keys: the mock server
+
+[`https://ridgeline-sandbox.mock.postman.postman.dev`](https://ridgeline-sandbox.mock.postman.postman.dev) serves all 13 endpoints of all six APIs from one address, using the example responses saved in the collections. It's generated from the collections with `postman mock generate`, pushed with `postman mock push`, and deployed with `postman mock deploy --public --auto-deploy`, so it updates whenever the mock changes.
+
+```bash
+curl -s -X POST https://ridgeline-sandbox.mock.postman.postman.dev/player-limits/v1/eligibility/check \
+  -H 'Content-Type: application/json' -d '{"player_id":"P-1003","product":"sportsbook"}'
+```
+
+The mock returns the documented shape, not live behavior: it always answers with the saved example. Use it to build a client or show an agent the contract. Use the real API, through Passport, to test rules.
+
+---
+
+## AI readiness
+
+Postman's AI-readiness check (`postman spec ai-readiness`, `postman collection ai-readiness`) estimates how reliably an AI agent can use an API. It's driven mostly by complexity (auth, error surface, parameters, pagination, rate limiting, nesting) and adjusted for documentation coverage.
+
+| | Score |
+|---|---|
+| Specs | Markets 95, the other five 80 |
+| Collections | 75 to 85 (the multi-API E2E flow is the 75) |
+
+Two things came out of running it:
+- **Every error code now tells an agent what to do**, and whether it can recover: fix the input, re-authenticate, route through the proxy, or stop. A `player_not_eligible` means *stop*, not *retry*.
+- **Credential acquisition is documented** in every spec's security scheme: find the API, request it in Passport, wait for the owner, use the reference.
+
+We also tried adding a real rate limit, because the check flagged rate limiting as undetectable. Scores dropped from 80 to 70, since rate limits are complexity an agent has to handle. The sandbox doesn't need one, so it came out. The repo runs the check as a gate (`npm run ai-readiness`, minimum 75) so a change that makes an API harder for agents fails in CI.
+
+---
+
+## SDKs
+
+Typed TypeScript SDKs for all six APIs, generated from the specs with `postman sdk generate`. Each SDK's README carries the same documentation as the spec, including how to get access and how to handle each error.
+
+```ts
+import { RidgelineBets } from 'ridgeline-bets';
+
+const bets = new RidgelineBets({ token: process.env.RIDGELINE_BETS_KEY }); // a Passport reference
+bets.baseUrl = 'https://<host>/bets';
+
+const bet = await bets.bets.betsPostBets({
+  playerId: 'P-1001',
+  selections: [{ marketId: 'MKT-ML-001', outcomeId: 'OUT-HAWKS' }],
+  stakeMinor: 1000, // cents
+});
+// -> { betId, status: 'accepted', potentialPayoutMinor: 1770, ... }
+```
+
+A self-excluded player comes back as a typed `403` error, so the rule is visible in the client code, not just in the docs.
+
+---
+
 ## How this workspace was built
 
 Everything here comes from files in a git repo, generated from one catalog and published with the **Postman CLI** from Claude Code. Nothing was hand-edited in the app.
@@ -97,6 +155,9 @@ postman workspace lint          # governance rules and schema checks, locally
 postman workspace diff          # preview what a push changes here
 postman workspace push --yes    # publish specs, collections, environments and this page
 postman collection run ...      # run the tests anywhere, including CI
+postman mock generate / push / deploy   # the public mock server
+postman spec ai-readiness ...   # score every spec and collection for agent use
+postman sdk generate ...        # typed SDKs from the specs
 ```
 
 Changes to this workspace arrive as a pull request first, so the specs, tests and docs are reviewed like code before they land here.

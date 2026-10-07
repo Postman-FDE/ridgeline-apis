@@ -19,7 +19,11 @@
     "reset": "bash -c 'set -a; [ -f .env.local ] && . ./.env.local; set +a; bash scripts/demo-reset.sh'",
     "local": "bash scripts/local.sh",
     "postman:push": "node --env-file-if-exists=.env.local scripts/postman-push.mjs",
-    "test:postman": "node --env-file-if-exists=.env.local scripts/postman-test.mjs"
+    "test:postman": "node --env-file-if-exists=.env.local scripts/postman-test.mjs",
+    "mock:build": "node scripts/mock.mjs",
+    "mock:run": "postman mock run postman/mocks/ridgeline/config.yaml",
+    "ai-readiness": "node scripts/ai-readiness.mjs",
+    "sdk": "node scripts/sdk.mjs"
   },
   "dependencies": {
     "next": "^16.4.0",

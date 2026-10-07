@@ -3,7 +3,7 @@
   "info": {
     "title": "Ridgeline Bets API",
     "version": "2.0.0",
-    "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**Bet placement**, single or parlay, optionally with a claimed boost.\n\n**Owner:** Team Bet Platform · **Consumers:** bet-slip, sportsbook-app (contract tested)\n\n### v2 (2026-07): breaking change\n`stake` (decimal dollars) was **removed** and replaced by `stake_minor` (integer cents). Requests that still send `stake` are rejected with `400 unsupported_field` and a `replacement` hint. The v1 spec is kept in history for reference.\n\n### Safety nets\nAt placement, bets re-checks **geo-compliance** and **player-limits** and rejects with `403`. This is a backstop, not a substitute: callers must still check eligibility **before** showing an offer.\n\n### Payout math\n`potential_payout_minor = stake_minor + stake_minor × (decimal_odds − 1) × (1 + profit_boost_pct/100)`, rounded. Parlays multiply decimal odds.\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
+    "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**Bet placement**, single or parlay, optionally with a claimed boost.\n\n**Owner:** Team Bet Platform · **Consumers:** bet-slip, sportsbook-app (contract tested)\n\n### v2 (2026-07): breaking change\n`stake` (decimal dollars) was **removed** and replaced by `stake_minor` (integer cents). Requests that still send `stake` are rejected with `400 unsupported_field` and a `replacement` hint. The v1 spec is kept in history for reference.\n\n### Safety nets\nAt placement, bets re-checks **geo-compliance** and **player-limits** and rejects with `403`. This is a backstop, not a substitute: callers must still check eligibility **before** showing an offer.\n\n### Payout math\n`potential_payout_minor = stake_minor + stake_minor × (decimal_odds − 1) × (1 + profit_boost_pct/100)`, rounded. Parlays multiply decimal odds.\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Bets API**, owned by **Team Bet Platform**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Bets API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Bet Platform. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_BETS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_BETS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*",
     "contact": {
       "name": "Team Bet Platform"
     },
@@ -43,7 +43,7 @@
         ],
         "operationId": "bets_post_bets",
         "summary": "Place a bet",
-        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors**\n\n| Status | `error` | When |\n|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). |\n| 403 | `product_not_available` | The product is not available in the player's state. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. |\n| 401 | `unauthorized` / `unresolved_reference` | Missing or wrong key, or an unresolved Passport reference |",
+        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [],
         "responses": {
           "201": {
@@ -122,13 +122,13 @@
                   "potential_payout_minor": 1770,
                   "boost_id": null,
                   "rewards_earned_minor": 0,
-                  "placed_at": "2026-10-07T18:57:35.932Z"
+                  "placed_at": "2026-10-07T20:02:15.131Z"
                 }
               }
             }
           },
           "400": {
-            "description": "`unsupported_field`: The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. `invalid_amount`: `stake_minor` is not a positive integer.",
+            "description": "`unsupported_field`: The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. Recoverable: yes. Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). `invalid_amount`: `stake_minor` is not a positive integer. Recoverable: yes. Fix the input: send a positive integer in cents (e.g. 1000), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -166,7 +166,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -204,7 +204,7 @@
             }
           },
           "403": {
-            "description": "`player_not_eligible`: Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). `product_not_available`: The product is not available in the player's state.",
+            "description": "`player_not_eligible`: Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). Recoverable: no. Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. `product_not_available`: The product is not available in the player's state. Recoverable: no. Stop for this product: it is not available in the player's state. Another product may be.",
             "content": {
               "application/json": {
                 "schema": {
@@ -242,7 +242,7 @@
             }
           },
           "404": {
-            "description": "`selection_not_found`: Unknown `market_id` / `outcome_id`.",
+            "description": "`selection_not_found`: Unknown `market_id` / `outcome_id`. Recoverable: yes. Look up valid outcomes with markets `GET /v1/markets`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -273,7 +273,7 @@
             }
           },
           "409": {
-            "description": "`boost_not_claimed`: `boost_id` given but the player has not claimed it.",
+            "description": "`boost_not_claimed`: `boost_id` given but the player has not claimed it. Recoverable: yes. Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet.",
             "content": {
               "application/json": {
                 "schema": {
@@ -304,7 +304,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -408,7 +408,7 @@
         ],
         "operationId": "bets_get_bets",
         "summary": "List bets",
-        "description": "List bets, optionally for one `player_id`.",
+        "description": "List bets, optionally for one `player_id`.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "parameters": [
           {
             "name": "player_id",
@@ -446,7 +446,7 @@
                       "potential_payout_minor": 1770,
                       "boost_id": null,
                       "rewards_earned_minor": 0,
-                      "placed_at": "2026-10-07T18:57:35.932Z"
+                      "placed_at": "2026-10-07T20:02:15.131Z"
                     }
                   ]
                 }
@@ -454,7 +454,7 @@
             }
           },
           "400": {
-            "description": "Invalid request: missing fields, invalid JSON or invalid values.",
+            "description": "Invalid request: missing fields, invalid JSON or invalid values. Recoverable: yes. Fix the input: add the fields listed in `fields`, then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -483,7 +483,7 @@
             }
           },
           "401": {
-            "description": "Missing or invalid bearer key, or an unresolved Passport reference.",
+            "description": "Missing or invalid bearer key, or an unresolved Passport reference. Recoverable: yes. Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry.",
             "content": {
               "application/json": {
                 "schema": {
@@ -521,7 +521,7 @@
             }
           },
           "500": {
-            "description": "Unexpected server error.",
+            "description": "Unexpected server error. Recoverable: maybe. Retry once with backoff. If it repeats, stop and report.",
             "content": {
               "application/json": {
                 "schema": {
@@ -555,7 +555,7 @@
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
-        "description": "Use the Passport reference {{vault:RIDGELINE_BETS_KEY}}. Never a raw key."
+        "description": "Send this API's own key as a Passport reference, {{vault:RIDGELINE_BETS_KEY}}, never a raw key.\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Bets API**, owned by **Team Bet Platform**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Bets API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Bet Platform. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_BETS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_BETS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n"
       }
     }
   }

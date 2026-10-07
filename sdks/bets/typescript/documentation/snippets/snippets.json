@@ -1,0 +1,21 @@
+{
+  "endpoints": {
+    "/v1/bets": {
+      "get": "import { RidgelineBets } from 'ridgeline-bets';\n\n(async () => {\n  const ridgelineBets = new RidgelineBets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelineBets.bets.betsGetBets({\n      playerId: \"player_id\",\n  });\n\n  console.log(data);\n})();\n",
+      "post": "import { BetsPostBetsRequest, RidgelineBets, Selections } from 'ridgeline-bets';\n\n(async () => {\n  const ridgelineBets = new RidgelineBets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const betsPostBetsRequestProduct = \"sportsbook\"\n  \n  \n  const selections: Selections = {\t\n    marketId: \"market_id\",\n    outcomeId: \"outcome_id\"\n  };\n  \n  const betsPostBetsRequest: BetsPostBetsRequest = {\t\n    playerId: \"player_id\",\n    product: betsPostBetsRequestProduct,\n    selections: [selections],\n    stakeMinor: 9,\n    boostId: \"boost_id\"\n  };\n\n  const data = await ridgelineBets.bets.betsPostBets(betsPostBetsRequest);\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/bets": {
+      "get": "{  }",
+      "post": "{ 'betId': 'test-value', 'playerId': 'test-value', 'status': 'accepted', 'product': 'sportsbook', 'stakeMinor': 1, 'potentialPayoutMinor': 1, 'boostId': 'test-value', 'rewardsEarnedMinor': 1, 'placedAt': 'test-value' }"
+    }
+  },
+  "example": "import { RidgelineBets } from 'ridgeline-bets';\n\n(async () => {\n  const ridgelineBets = new RidgelineBets({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelineBets.bets.betsGetBets({\n      playerId: \"player_id\",\n  });\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelineBets({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelineBets();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

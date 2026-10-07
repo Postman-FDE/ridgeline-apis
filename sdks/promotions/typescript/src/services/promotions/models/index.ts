@@ -1,0 +1,17 @@
+export type { PromotionsPostBoostsRequest } from './promotions-post-boosts-request';
+export type { Products } from './products';
+export type { PromotionsPostBoostsClaimRequest } from './promotions-post-boosts-claim-request';
+export type { PromotionsGetBoostsBadRequestResponse } from './promotions-get-boosts-bad-request-response';
+export type { PromotionsGetBoostsUnauthorizedResponse } from './promotions-get-boosts-unauthorized-response';
+export type { PromotionsGetBoostsInternalServerErrorResponse } from './promotions-get-boosts-internal-server-error-response';
+export type { PromotionsPostBoostsBadRequestResponse } from './promotions-post-boosts-bad-request-response';
+export type { PromotionsPostBoostsUnauthorizedResponse } from './promotions-post-boosts-unauthorized-response';
+export type { PromotionsPostBoostsNotFoundResponse } from './promotions-post-boosts-not-found-response';
+export type { PromotionsPostBoostsInternalServerErrorResponse } from './promotions-post-boosts-internal-server-error-response';
+export type { PromotionsPostBoostsClaimBadRequestResponse } from './promotions-post-boosts-claim-bad-request-response';
+export type { PromotionsPostBoostsClaimUnauthorizedResponse } from './promotions-post-boosts-claim-unauthorized-response';
+export type { PromotionsPostBoostsClaimNotFoundResponse } from './promotions-post-boosts-claim-not-found-response';
+export type { PromotionsPostBoostsClaimInternalServerErrorResponse } from './promotions-post-boosts-claim-internal-server-error-response';
+export type { PromotionsGetBoostsClaimsBadRequestResponse } from './promotions-get-boosts-claims-bad-request-response';
+export type { PromotionsGetBoostsClaimsUnauthorizedResponse } from './promotions-get-boosts-claims-unauthorized-response';
+export type { PromotionsGetBoostsClaimsInternalServerErrorResponse } from './promotions-get-boosts-claims-internal-server-error-response';

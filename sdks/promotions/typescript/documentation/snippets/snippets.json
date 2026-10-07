@@ -1,0 +1,33 @@
+{
+  "endpoints": {
+    "/v1/boosts": {
+      "get": "import { RidgelinePromotions } from 'ridgeline-promotions';\n\n(async () => {\n  const ridgelinePromotions = new RidgelinePromotions({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelinePromotions.promotions.promotionsGetBoosts();\n\n  console.log(data);\n})();\n",
+      "post": "import { PromotionsPostBoostsRequest, RidgelinePromotions } from 'ridgeline-promotions';\n\n(async () => {\n  const ridgelinePromotions = new RidgelinePromotions({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const products = \"sportsbook\"\n  \n  const promotionsPostBoostsRequest: PromotionsPostBoostsRequest = {\t\n    name: \"name\",\n    marketId: \"market_id\",\n    profitBoostPct: 8,\n    rewardsBackPct: 2,\n    products: [products]\n  };\n\n  const data = await ridgelinePromotions.promotions.promotionsPostBoosts(promotionsPostBoostsRequest);\n\n  console.log(data);\n})();\n"
+    },
+    "/v1/boosts/claim": {
+      "post": "import { PromotionsPostBoostsClaimRequest, RidgelinePromotions } from 'ridgeline-promotions';\n\n(async () => {\n  const ridgelinePromotions = new RidgelinePromotions({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  \n  const promotionsPostBoostsClaimRequest: PromotionsPostBoostsClaimRequest = {\t\n    boostId: \"boost_id\",\n    playerId: \"player_id\"\n  };\n\n  const data = await ridgelinePromotions.promotions.promotionsPostBoostsClaim(promotionsPostBoostsClaimRequest);\n\n  console.log(data);\n})();\n"
+    },
+    "/v1/boosts/claims": {
+      "get": "import { RidgelinePromotions } from 'ridgeline-promotions';\n\n(async () => {\n  const ridgelinePromotions = new RidgelinePromotions({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelinePromotions.promotions.promotionsGetBoostsClaims({\n      boostId: \"boost_id\",\n  });\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/boosts": {
+      "get": "{  }",
+      "post": "{  }"
+    },
+    "/v1/boosts/claim": {
+      "post": "{  }"
+    },
+    "/v1/boosts/claims": {
+      "get": "{  }"
+    }
+  },
+  "example": "import { RidgelinePromotions } from 'ridgeline-promotions';\n\n(async () => {\n  const ridgelinePromotions = new RidgelinePromotions({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const data = await ridgelinePromotions.promotions.promotionsGetBoosts();\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelinePromotions({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelinePromotions();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

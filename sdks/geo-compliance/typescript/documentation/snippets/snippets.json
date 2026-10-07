@@ -1,0 +1,19 @@
+{
+  "endpoints": {
+    "/v1/location/check": {
+      "post": "import { GeoCompliancePostLocationCheckRequest, RidgelineGeoCompliance } from 'ridgeline-geo-compliance';\n\n(async () => {\n  const ridgelineGeoCompliance = new RidgelineGeoCompliance({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const product = \"sportsbook\"\n  \n  const geoCompliancePostLocationCheckRequest: GeoCompliancePostLocationCheckRequest = {\t\n    playerId: \"player_id\",\n    product: product\n  };\n\n  const data = await ridgelineGeoCompliance.geoCompliance.geoCompliancePostLocationCheck(geoCompliancePostLocationCheckRequest);\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/location/check": {
+      "post": "{  }"
+    }
+  },
+  "example": "import { GeoCompliancePostLocationCheckRequest, RidgelineGeoCompliance } from 'ridgeline-geo-compliance';\n\n(async () => {\n  const ridgelineGeoCompliance = new RidgelineGeoCompliance({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const product = \"sportsbook\"\n  \n  const geoCompliancePostLocationCheckRequest: GeoCompliancePostLocationCheckRequest = {\t\n    playerId: \"player_id\",\n    product: product\n  };\n\n  const data = await ridgelineGeoCompliance.geoCompliance.geoCompliancePostLocationCheck(geoCompliancePostLocationCheckRequest);\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelineGeoCompliance({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelineGeoCompliance();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "endpoints": {
+    "/v1/eligibility/check": {
+      "post": "import { PlayerLimitsPostEligibilityCheckRequest, RidgelinePlayerLimits } from 'ridgeline-player-limits';\n\n(async () => {\n  const ridgelinePlayerLimits = new RidgelinePlayerLimits({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const playerLimitsPostEligibilityCheckRequestProduct = \"sportsbook\"\n  \n  const playerLimitsPostEligibilityCheckRequest: PlayerLimitsPostEligibilityCheckRequest = {\t\n    playerId: \"player_id\",\n    product: playerLimitsPostEligibilityCheckRequestProduct,\n    amountMinor: 9\n  };\n\n  const data = await ridgelinePlayerLimits.playerLimits.playerLimitsPostEligibilityCheck(playerLimitsPostEligibilityCheckRequest);\n\n  console.log(data);\n})();\n"
+    },
+    "/v1/limits": {
+      "post": "import { PlayerLimitsPostLimitsRequest, RidgelinePlayerLimits } from 'ridgeline-player-limits';\n\n(async () => {\n  const ridgelinePlayerLimits = new RidgelinePlayerLimits({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  \n  const playerLimitsPostLimitsRequest: PlayerLimitsPostLimitsRequest = {\t\n    playerId: \"player_id\"\n  };\n\n  const data = await ridgelinePlayerLimits.playerLimits.playerLimitsPostLimits(playerLimitsPostLimitsRequest);\n\n  console.log(data);\n})();\n"
+    }
+  },
+  "methodResponses": {
+    "/v1/eligibility/check": {
+      "post": "{ 'playerId': 'test-value', 'product': 'sportsbook', 'eligible': true, 'reasons': ['SELF_EXCLUDED'], 'mayReceivePromotions': true, 'remainingDailyWagerMinor': 1, 'checkedAt': 'test-value' }"
+    },
+    "/v1/limits": {
+      "post": "{  }"
+    }
+  },
+  "example": "import { PlayerLimitsPostEligibilityCheckRequest, RidgelinePlayerLimits } from 'ridgeline-player-limits';\n\n(async () => {\n  const ridgelinePlayerLimits = new RidgelinePlayerLimits({\n\ttoken: 'YOUR_TOKEN',\n});\n\n  const playerLimitsPostEligibilityCheckRequestProduct = \"sportsbook\"\n  \n  const playerLimitsPostEligibilityCheckRequest: PlayerLimitsPostEligibilityCheckRequest = {\t\n    playerId: \"player_id\",\n    product: playerLimitsPostEligibilityCheckRequestProduct,\n    amountMinor: 9\n  };\n\n  const data = await ridgelinePlayerLimits.playerLimits.playerLimitsPostEligibilityCheck(playerLimitsPostEligibilityCheckRequest);\n\n  console.log(data);\n})();\n",
+  "authentication": {
+    "bearer": {
+      "constructor": "const sdk = new RidgelinePlayerLimits({ token: 'YOUR_TOKEN' });",
+      "setter": "const sdk = new RidgelinePlayerLimits();\nsdk.token = 'YOUR_TOKEN';"
+    }
+  }
+}

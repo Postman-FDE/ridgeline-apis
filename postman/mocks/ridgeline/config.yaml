@@ -1,0 +1,11 @@
+version: 1
+id: 2f5d98b0-0e6c-4b28-8a2f-e2241a6b4ab7
+name: Ridgeline Sandbox (mock)
+slug: ridgeline-sandbox-mock
+protocol: http
+port: 4500
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true
+    id: 01a117f2-5fc8-759a-a93b-38cb363718c1
