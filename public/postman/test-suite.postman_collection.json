@@ -1,18 +1,19 @@
 {
   "info": {
-    "_postman_id": "08548dd5-163c-48a2-a2a3-ed886b94c1db",
+    "_postman_id": "bd28e4b9-293d-4207-928e-b06e4617a59c",
     "name": "Ridgeline · Test Suite",
-    "description": "Automated tests for every Ridgeline API: **auth** (each API only accepts its own key, and rejects unresolved Passport references), **functional** behavior, **business rules** (self-exclusion, cool-off, daily limits, state availability, the v2 `stake_minor` contract) and **negative cases**. Run with the Collection Runner, `postman collection run`, or Newman. Every request also checks response time and JSON content type (collection-level tests).",
+    "description": "Automated tests for every Ridgeline API: **auth**, **functional** behavior, **business rules** and **negative cases**. 56 requests and 230 assertions, all order-independent: each test creates what it needs (its own boost, its own idempotency key), so folders can run alone.\n\n## What's covered\n\n| Folder | Requests | What it proves |\n|---|---|---|\n| Auth | 24 | Each API accepts only its own key, and rejects a missing key, another API's key, and an unresolved Passport reference |\n| Markets | 3 | Events and markets are listed, filtered by event, with valid odds |\n| Player limits | 8 | Self-exclusion and cool-off block wagers **and** promotions; a daily limit blocks wagers only; bad input fails with the right code |\n| Geo compliance | 3 | Casino availability by state |\n| Wallet | 4 | Balances are integer cents; rewards credits are idempotent |\n| Promotions | 6 | Boosts and claims work, claims are idempotent, unknown IDs return 404 |\n| Bets | 8 | Payout math with and without a boost, the v2 `stake_minor` contract, and the platform safety nets |\n\nEvery request also checks response time (under 2s) and JSON content type, from collection-level tests. Each request's docs say why it exists and list its checks.\n\n\n| Player | State | Status | Use it to test |\n|---|---|---|---|\n| `P-1001` | NJ | active | the happy path |\n| `P-1002` | PA | active, $20.00 left of a $50.00 daily limit | `DAILY_WAGER_LIMIT` |\n| `P-1003` | MI | **self-excluded** until 2027-06-30 | blocked wagers, **no promotions** |\n| `P-1004` | NY | active | casino not available in state |\n| `P-1005` | NJ | **cool-off** | blocked wagers, **no promotions** |\n\n\n## Environments\n\n| Environment | Use it for |\n|---|---|\n| **Ridgeline Sandbox · Mock** | Trying requests with no keys. The public mock answers every endpoint with its saved example response (no business logic) |\n| **Ridgeline Sandbox · Passport** | The real API. Keys are Passport references (`{{vault:RIDGELINE_*_KEY}}`), resolved by the Passport proxy |\n| **Ridgeline Sandbox · Local (no keys)** | `npm run local` on `http://localhost:4100`. Paste an owner key into the *current* value only |\n\n\n## Run it\n\n- **In Postman:** pick an environment (**Passport** or **Local**: these tests check real behavior, so the mock will fail them), then **Run collection** in the Collection Runner.\n- **From a terminal:** `postman collection run public/postman/test-suite.postman_collection.json -e <environment>`\n- **From the repo, against every collection:** `npm run test:postman`\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "Auth",
-      "description": "Each API accepts only its own bearer key.",
+      "description": "Each API accepts only its own bearer key. For every API: no key, another API's key, an unresolved Passport reference, and its own key. The unresolved-reference check builds the header in a pre-request script so the client sends the literal `{{vault:...}}` instead of resolving it.\n\n**24 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "markets · no key → 401",
           "request": {
+            "description": "`GET /markets/v1/events`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -47,11 +48,12 @@
               }
             }
           ],
-          "id": "bbd89432-3f5d-43be-b323-7a4facc63914"
+          "id": "e9b9040c-1efc-4076-8bda-cc91b385f7c2"
         },
         {
           "name": "markets · another API's key → 401",
           "request": {
+            "description": "`GET /markets/v1/events`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -93,11 +95,12 @@
               }
             }
           ],
-          "id": "da512ec1-720b-4c61-b8a7-907f76f339b8"
+          "id": "d240820e-5390-48bf-8171-7117f83d63b4"
         },
         {
           "name": "markets · unresolved Passport reference → 401",
           "request": {
+            "description": "`GET /markets/v1/events`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "GET",
             "header": [
               {
@@ -142,11 +145,12 @@
               }
             }
           ],
-          "id": "83aa60b6-e989-4b22-9e03-69ff80afb839"
+          "id": "f9f1007a-f110-4bac-8c17-258a5fd960a0"
         },
         {
           "name": "markets · own key → 2xx",
           "request": {
+            "description": "`GET /markets/v1/events`\n\n**Checks**\n- status 2xx",
             "method": "GET",
             "header": [
               {
@@ -187,11 +191,12 @@
               }
             }
           ],
-          "id": "caf70a46-fbb0-481b-87fb-0e2af2d12037"
+          "id": "34235650-4700-4afc-bd8f-d721c96513ae"
         },
         {
           "name": "wallet · no key → 401",
           "request": {
+            "description": "`POST /wallet/v1/wallet/balance`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -236,11 +241,12 @@
               }
             }
           ],
-          "id": "9040761e-da09-45d9-8224-8d5de2d72c69"
+          "id": "bd6523dd-eecb-407e-be1d-1aa30cdfb9c9"
         },
         {
           "name": "wallet · another API's key → 401",
           "request": {
+            "description": "`POST /wallet/v1/wallet/balance`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -292,11 +298,12 @@
               }
             }
           ],
-          "id": "707ffe39-0be9-4525-9e94-7fc8664820ed"
+          "id": "a3ca4af7-bdb9-4f96-a805-8ebb5083c751"
         },
         {
           "name": "wallet · unresolved Passport reference → 401",
           "request": {
+            "description": "`POST /wallet/v1/wallet/balance`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "POST",
             "header": [
               {
@@ -351,11 +358,12 @@
               }
             }
           ],
-          "id": "dcaabdd2-e488-4a90-8364-3b98cc118026"
+          "id": "ce8a1eaf-a28c-4930-acf6-9a12e010858a"
         },
         {
           "name": "wallet · own key → 2xx",
           "request": {
+            "description": "`POST /wallet/v1/wallet/balance`\n\n**Checks**\n- status 2xx",
             "method": "POST",
             "header": [
               {
@@ -406,11 +414,12 @@
               }
             }
           ],
-          "id": "4a51159a-d351-45e5-8351-14512fb52b01"
+          "id": "04e647c3-a89f-4d27-8991-9984d7a05dc1"
         },
         {
           "name": "promotions · no key → 401",
           "request": {
+            "description": "`GET /promotions/v1/boosts`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -445,11 +454,12 @@
               }
             }
           ],
-          "id": "36f62149-f64a-4f51-a235-61e4908fa8c6"
+          "id": "393c9f33-ff80-4b37-898c-ff123d5b5ff3"
         },
         {
           "name": "promotions · another API's key → 401",
           "request": {
+            "description": "`GET /promotions/v1/boosts`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -491,11 +501,12 @@
               }
             }
           ],
-          "id": "0b283ae3-cce7-4fc3-b2cc-c2a964ef9782"
+          "id": "75579ea3-479e-4642-84c5-04e28afb894a"
         },
         {
           "name": "promotions · unresolved Passport reference → 401",
           "request": {
+            "description": "`GET /promotions/v1/boosts`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "GET",
             "header": [
               {
@@ -540,11 +551,12 @@
               }
             }
           ],
-          "id": "de512d63-3f1e-44cc-9c11-cb0ae9a6599a"
+          "id": "901b8055-e4ed-428e-95c8-613ae21a78e0"
         },
         {
           "name": "promotions · own key → 2xx",
           "request": {
+            "description": "`GET /promotions/v1/boosts`\n\n**Checks**\n- status 2xx",
             "method": "GET",
             "header": [
               {
@@ -585,11 +597,12 @@
               }
             }
           ],
-          "id": "b059790e-e95f-4dce-9d22-2b1088bd1aeb"
+          "id": "394d6f48-00ea-4d7a-bbf8-c3264cfc9171"
         },
         {
           "name": "player-limits · no key → 401",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -634,11 +647,12 @@
               }
             }
           ],
-          "id": "662728de-9570-4b6e-9e3f-132e85512e10"
+          "id": "8900f2d7-98fc-4757-a4a5-85b7a4b0e2dd"
         },
         {
           "name": "player-limits · another API's key → 401",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -690,11 +704,12 @@
               }
             }
           ],
-          "id": "d04251e3-22af-4ce7-ba83-f05fab42367a"
+          "id": "f4405788-9603-4943-a3e8-e964e589a98a"
         },
         {
           "name": "player-limits · unresolved Passport reference → 401",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "POST",
             "header": [
               {
@@ -749,11 +764,12 @@
               }
             }
           ],
-          "id": "9ada095a-20eb-4e7a-a981-1ac1a0207a8e"
+          "id": "d48b9d36-40d2-4f14-b411-b2395c094086"
         },
         {
           "name": "player-limits · own key → 2xx",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 2xx",
             "method": "POST",
             "header": [
               {
@@ -804,11 +820,12 @@
               }
             }
           ],
-          "id": "f140ceb5-f2f0-400b-9999-cb5f6b69b5f1"
+          "id": "cf9b5447-f3fd-480c-a405-07c00f6d74e2"
         },
         {
           "name": "bets · no key → 401",
           "request": {
+            "description": "`GET /bets/v1/bets`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -843,11 +860,12 @@
               }
             }
           ],
-          "id": "29068d3c-9ed7-4586-910c-85e924859d1e"
+          "id": "57a0210a-0aff-42c3-b09d-10eeca07ff36"
         },
         {
           "name": "bets · another API's key → 401",
           "request": {
+            "description": "`GET /bets/v1/bets`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "GET",
             "header": [
               {
@@ -889,11 +907,12 @@
               }
             }
           ],
-          "id": "dcf0b9d8-8631-44ed-9a56-a2a1ecb2d89e"
+          "id": "e849322b-3d3f-49d7-b800-b71bcb8598fc"
         },
         {
           "name": "bets · unresolved Passport reference → 401",
           "request": {
+            "description": "`GET /bets/v1/bets`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "GET",
             "header": [
               {
@@ -938,11 +957,12 @@
               }
             }
           ],
-          "id": "29e89f25-1c9c-4375-af4a-428fabf93b6c"
+          "id": "7aa99c38-0d7c-4292-b482-e4f3e84d1b18"
         },
         {
           "name": "bets · own key → 2xx",
           "request": {
+            "description": "`GET /bets/v1/bets`\n\n**Checks**\n- status 2xx",
             "method": "GET",
             "header": [
               {
@@ -983,11 +1003,12 @@
               }
             }
           ],
-          "id": "d5868f05-7dfc-4012-ad85-4c3ed81768f8"
+          "id": "45f766cc-d3d2-4793-9e0b-dcae5ea1565c"
         },
         {
           "name": "geo-compliance · no key → 401",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -1032,11 +1053,12 @@
               }
             }
           ],
-          "id": "7a886f1a-117a-4263-905b-460718b9d3d2"
+          "id": "1040eda8-52f1-4ae4-ab06-00794b42eacc"
         },
         {
           "name": "geo-compliance · another API's key → 401",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 401\n- error code is unauthorized",
             "method": "POST",
             "header": [
               {
@@ -1088,11 +1110,12 @@
               }
             }
           ],
-          "id": "b6ed8a7f-34b4-48c4-8a53-510f2e52d4d9"
+          "id": "0ffdf737-6874-4050-9935-283f1fe1654c"
         },
         {
           "name": "geo-compliance · unresolved Passport reference → 401",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 401\n- rejected as unresolved reference (or unauthorized if the client resolved it)",
             "method": "POST",
             "header": [
               {
@@ -1147,11 +1170,12 @@
               }
             }
           ],
-          "id": "ff7ef87a-ca9c-485f-96f2-b9c68e3e3ed6"
+          "id": "0ab52ca8-225d-4ab8-b065-0d07b2c6a00a"
         },
         {
           "name": "geo-compliance · own key → 2xx",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 2xx",
             "method": "POST",
             "header": [
               {
@@ -1202,18 +1226,19 @@
               }
             }
           ],
-          "id": "b07ac26d-e9bf-46ba-8924-57a7f9f1ea46"
+          "id": "b15b50c1-506a-4a33-9aa1-a3d84b0399c2"
         }
       ],
-      "id": "a31f50da-ca0c-43b0-a350-c53fee5c8adb"
+      "id": "b8b2ebf7-cf66-4902-b549-c299c9751195"
     },
     {
       "name": "Markets",
-      "description": "Events and odds.",
+      "description": "Events and odds.\n\n**API:** Markets API · **Owner:** Team Trading\n\nEvents and odds for the sportsbook. Read-only.\n\n**3 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "events include the championship final",
           "request": {
+            "description": "`GET /markets/v1/events`\n\n**Checks**\n- status 200\n- EVT-FINAL-2026 listed",
             "method": "GET",
             "header": [
               {
@@ -1255,11 +1280,12 @@
               }
             }
           ],
-          "id": "77058f4c-c8d2-432b-a998-f0d5f9b20ab0"
+          "id": "53ed08ca-5bff-4601-b992-a9fa1e22b8f3"
         },
         {
           "name": "markets filter by event, odds are valid",
           "request": {
+            "description": "`GET /markets/v1/markets`\n\n**Checks**\n- status 200\n- only the requested event\n- every outcome has decimal odds > 1",
             "method": "GET",
             "header": [
               {
@@ -1309,11 +1335,12 @@
               }
             }
           ],
-          "id": "28542520-c89c-4989-aa5e-66ee1dec0e7f"
+          "id": "d47dce3f-1228-42a1-9fe8-c59a51a4941a"
         },
         {
           "name": "unknown event returns an empty list",
           "request": {
+            "description": "`GET /markets/v1/markets`\n\n**Checks**\n- status 200\n- no markets",
             "method": "GET",
             "header": [
               {
@@ -1361,18 +1388,19 @@
               }
             }
           ],
-          "id": "63a32a98-c124-47e1-bf91-5f5ab6c88b73"
+          "id": "4e70e431-eb04-49dd-be12-a2017fa01d59"
         }
       ],
-      "id": "0a77df05-2fbc-4c78-a363-4c110ed76451"
+      "id": "ee67e428-8c71-4d59-8e19-dfd7b194751a"
     },
     {
       "name": "Player limits (responsible gaming)",
-      "description": "The single source of truth for player protection.",
+      "description": "The single source of truth for player protection.\n\n**API:** Player Limits API · **Owner:** Team Responsible Gaming\n\nResponsible-gaming eligibility: self-exclusion, cool-off and daily wager limits. The single source of truth for player protection. Never reimplement this logic in a caller. Self-excluded and cool-off players must not receive promotional offers (`may_receive_promotions: false`).\n\n**8 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "P-1001 active → eligible",
           "request": {
+            "description": "**Why:** The happy path, so a regression that blocks everyone shows up here.\n\n**Checks**\n- status 200\n- eligible\n- may receive promotions",
             "method": "POST",
             "header": [
               {
@@ -1426,11 +1454,12 @@
               }
             }
           ],
-          "id": "e713f3db-ff6b-4ad4-a454-780aefae5e06"
+          "id": "5efa82df-8534-4d60-93a7-091499e844d1"
         },
         {
           "name": "P-1003 self-excluded → blocked, no promotions",
           "request": {
+            "description": "**Why:** The rule that matters most in this domain. A self-excluded player must never be shown or given a promotion, so `may_receive_promotions` has to be `false` whatever the amount.\n\n**Checks**\n- status 200\n- not eligible\n- reason SELF_EXCLUDED\n- must not receive promotions",
             "method": "POST",
             "header": [
               {
@@ -1485,11 +1514,12 @@
               }
             }
           ],
-          "id": "4f183e4e-59d8-4f79-b261-4392dafca95a"
+          "id": "491b978b-95f4-4ff9-9a04-b4a0e84b97d6"
         },
         {
           "name": "P-1005 cool-off → blocked, no promotions",
           "request": {
+            "description": "**Why:** Cool-off is temporary self-exclusion and gets the same treatment: no wagers, no promotions.\n\n**Checks**\n- status 200\n- reason COOL_OFF\n- must not receive promotions",
             "method": "POST",
             "header": [
               {
@@ -1543,11 +1573,12 @@
               }
             }
           ],
-          "id": "45ed379d-e152-429c-be09-c9eb8a1f562e"
+          "id": "d7500ae4-728c-4ade-838e-5bfe003d9208"
         },
         {
           "name": "P-1002 over daily limit → wager blocked, promotions still allowed",
           "request": {
+            "description": "**Why:** The two questions are different. A daily limit blocks the wager, but it is not a reason to withhold promotions. Callers that conflate them get this wrong.\n\n**Checks**\n- status 200\n- reason DAILY_WAGER_LIMIT\n- limit alone does not block promotions",
             "method": "POST",
             "header": [
               {
@@ -1601,11 +1632,12 @@
               }
             }
           ],
-          "id": "b0149938-042b-4ff3-9810-0bb61eb5542d"
+          "id": "2a5ecfc3-24b3-4b3b-b031-3a9237309dad"
         },
         {
           "name": "invalid product → 400",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 400\n- error code is invalid_product",
             "method": "POST",
             "header": [
               {
@@ -1657,11 +1689,12 @@
               }
             }
           ],
-          "id": "fe5f457b-5b4f-4720-9325-819809343419"
+          "id": "f7cf8e0d-464b-4db0-8220-96ea78b613ef"
         },
         {
           "name": "missing player_id → 400",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 400\n- error code is missing_fields",
             "method": "POST",
             "header": [
               {
@@ -1713,11 +1746,12 @@
               }
             }
           ],
-          "id": "bb1b5019-ade7-4d8a-8e97-c2d9425db632"
+          "id": "5b1ec98a-155b-4c07-92f0-5b5bc07a477d"
         },
         {
           "name": "unknown player → 404",
           "request": {
+            "description": "`POST /player-limits/v1/eligibility/check`\n\n**Checks**\n- status 404\n- error code is player_not_found",
             "method": "POST",
             "header": [
               {
@@ -1769,11 +1803,12 @@
               }
             }
           ],
-          "id": "232cd268-d1aa-4820-bb46-258f8619da59"
+          "id": "b16a30e6-614c-4446-8237-c52c4b4ab44b"
         },
         {
           "name": "limits for P-1002",
           "request": {
+            "description": "`POST /player-limits/v1/limits`\n\n**Checks**\n- status 200\n- integer cents",
             "method": "POST",
             "header": [
               {
@@ -1825,18 +1860,19 @@
               }
             }
           ],
-          "id": "fedbf17d-4c80-4d7c-b219-9e7d879bfbac"
+          "id": "a85581db-40b9-4295-a9c0-d004b603e395"
         }
       ],
-      "id": "9cb7c79d-0c44-4929-8d62-3bb7f09dc636"
+      "id": "debd1ffb-a99d-4024-afca-b2a72456694f"
     },
     {
       "name": "Geo compliance",
-      "description": "Product availability by state.",
+      "description": "Product availability by state.\n\n**API:** Geo Compliance API · **Owner:** Team Compliance\n\nWhich products a player may access in their state. Casino is available in NJ, PA and MI only (sandbox data).\n\n**3 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "NY · casino not available",
           "request": {
+            "description": "**Why:** Casino is legal in some states only. Offers and bets for casino must check location first.\n\n**Checks**\n- status 200\n- not allowed\n- reason given",
             "method": "POST",
             "header": [
               {
@@ -1889,11 +1925,12 @@
               }
             }
           ],
-          "id": "33c91070-32f5-440d-b4f9-38eb5ddb9c37"
+          "id": "2e7a555e-3bf3-4fe1-9de9-a9da257a8f30"
         },
         {
           "name": "NY · sportsbook available",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 200\n- allowed",
             "method": "POST",
             "header": [
               {
@@ -1945,11 +1982,12 @@
               }
             }
           ],
-          "id": "e5a1c707-f775-4b47-83cd-76ec6dfa9b1b"
+          "id": "2623ee77-7a06-4421-a799-603baee02886"
         },
         {
           "name": "NJ · casino available",
           "request": {
+            "description": "`POST /geo-compliance/v1/location/check`\n\n**Checks**\n- status 200\n- allowed",
             "method": "POST",
             "header": [
               {
@@ -2001,18 +2039,19 @@
               }
             }
           ],
-          "id": "a6845387-c2ac-4f4d-962a-727ccb43e40c"
+          "id": "854364ea-2745-414c-bea1-1c54e5706fd6"
         }
       ],
-      "id": "d376fb3c-4355-4115-b996-fd95946244c2"
+      "id": "097bbfd8-0d82-4d55-96b9-86a1dd6dfe22"
     },
     {
       "name": "Wallet",
-      "description": "Balances and idempotent rewards credits.",
+      "description": "Balances and idempotent rewards credits.\n\n**API:** Wallet API · **Owner:** Team Payments\n\nPlayer balances (cash, bonus, rewards) and rewards credits. All amounts are integer minor units (cents).\n\n**4 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "balance is integer cents",
           "request": {
+            "description": "`POST /wallet/v1/wallet/balance`\n\n**Checks**\n- status 200\n- integer amounts",
             "method": "POST",
             "header": [
               {
@@ -2066,11 +2105,12 @@
               }
             }
           ],
-          "id": "25b852b0-cdee-4921-90c4-39e16b085600"
+          "id": "6e185755-650f-4021-9629-07fc4cdebbaa"
         },
         {
           "name": "credit rewards (new idempotency key)",
           "request": {
+            "description": "`POST /wallet/v1/wallet/rewards/credit`\n\n**Checks**\n- status 201\n- balance increased by 50",
             "method": "POST",
             "header": [
               {
@@ -2133,11 +2173,12 @@
               }
             }
           ],
-          "id": "b17c84dc-47c5-44d2-b45e-aa457cb0097d"
+          "id": "de1018ef-8dc2-41c7-b44a-b7b94835b577"
         },
         {
           "name": "replaying the same idempotency key does not double-credit",
           "request": {
+            "description": "**Why:** Agents retry. A credit that is not idempotent pays twice when an agent retries after a timeout.\n\n**Checks**\n- status 201\n- balance unchanged on replay",
             "method": "POST",
             "header": [
               {
@@ -2190,11 +2231,12 @@
               }
             }
           ],
-          "id": "1cff6cb6-8c7a-4a43-8634-35d96b57fa59"
+          "id": "2446d868-e541-4e7c-99c6-4d3961548602"
         },
         {
           "name": "decimal amount → 400",
           "request": {
+            "description": "`POST /wallet/v1/wallet/rewards/credit`\n\n**Checks**\n- status 400\n- error code is invalid_amount",
             "method": "POST",
             "header": [
               {
@@ -2247,18 +2289,19 @@
               }
             }
           ],
-          "id": "737f7284-8c29-42c7-b401-511d7af47746"
+          "id": "b746376c-fc50-4cdd-836d-6d1899301134"
         }
       ],
-      "id": "329cd1ab-91fb-45a9-97c2-15dba96ca73a"
+      "id": "7063ad0c-eaa0-47ae-b4f9-23751f84927a"
     },
     {
       "name": "Promotions",
-      "description": "Boosts and claims (callers must check eligibility first).",
+      "description": "Boosts and claims (callers must check eligibility first).\n\n**API:** Promotions API · **Owner:** Team Promotions\n\nBoosts and claims. Promotions does not check responsible-gaming eligibility. Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**6 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "create a boost",
           "request": {
+            "description": "`POST /promotions/v1/boosts`\n\n**Checks**\n- status 201\n- has a boost_id\n- active",
             "method": "POST",
             "header": [
               {
@@ -2312,11 +2355,12 @@
               }
             }
           ],
-          "id": "0d81747f-e15b-4f40-8b10-35d725bb8fdf"
+          "id": "9efc4352-1e70-4f1c-a152-c48e81cd5ade"
         },
         {
           "name": "unknown market → 404",
           "request": {
+            "description": "`POST /promotions/v1/boosts`\n\n**Checks**\n- status 404\n- error code is market_not_found",
             "method": "POST",
             "header": [
               {
@@ -2367,11 +2411,12 @@
               }
             }
           ],
-          "id": "c1f6d77d-7e1e-4971-8a33-3280efde2eb8"
+          "id": "a00a7104-c199-4190-be47-f555c9178f97"
         },
         {
           "name": "claim for eligible P-1001",
           "request": {
+            "description": "`POST /promotions/v1/boosts/claim`\n\n**Checks**\n- status 201\n- claim recorded",
             "method": "POST",
             "header": [
               {
@@ -2423,11 +2468,12 @@
               }
             }
           ],
-          "id": "001d5e45-b9a9-4ed3-b1b7-fc47ffec3698"
+          "id": "a11b6b3d-3f44-4a4e-9fa5-33f9ee1bd6d3"
         },
         {
           "name": "claiming twice is idempotent",
           "request": {
+            "description": "**Why:** Retries must not create duplicate claims.\n\n**Checks**\n- status 201",
             "method": "POST",
             "header": [
               {
@@ -2479,11 +2525,12 @@
               }
             }
           ],
-          "id": "ddc892cb-7edf-4b28-9d6c-9310cbfeb173"
+          "id": "fc94795c-5cfa-4ec3-81f9-6d7e31f18915"
         },
         {
           "name": "claims list has exactly one claim for P-1001",
           "request": {
+            "description": "`GET /promotions/v1/boosts/claims`\n\n**Checks**\n- status 200\n- one claim",
             "method": "GET",
             "header": [
               {
@@ -2533,11 +2580,12 @@
               }
             }
           ],
-          "id": "8d000382-452c-4c46-a330-b14ed982ece2"
+          "id": "ef693999-1d9c-41e3-b67d-061a8bdc56a2"
         },
         {
           "name": "unknown boost → 404",
           "request": {
+            "description": "`POST /promotions/v1/boosts/claim`\n\n**Checks**\n- status 404\n- error code is boost_not_found",
             "method": "POST",
             "header": [
               {
@@ -2589,18 +2637,19 @@
               }
             }
           ],
-          "id": "b70ba99e-07bc-4722-ab4f-36af69bd4ab7"
+          "id": "34ec7eed-8b05-4bd8-a7df-61be04711eac"
         }
       ],
-      "id": "e8f65318-2c2c-448f-9409-661e5b2c6fc0"
+      "id": "38c72016-1834-47d2-89d5-bf34c0b33d03"
     },
     {
       "name": "Bets",
-      "description": "v2 contract (stake_minor) and platform safety nets.",
+      "description": "v2 contract (stake_minor) and platform safety nets.\n\n**API:** Bets API · **Owner:** Team Bet Platform\n\nBet placement. v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents). Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**8 requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.",
       "item": [
         {
           "name": "valid bet · payout = stake × odds",
           "request": {
+            "description": "`POST /bets/v1/bets`\n\n**Checks**\n- status 201\n- accepted\n- payout 1000 × 1.77 = 1770\n- no rewards without a boost",
             "method": "POST",
             "header": [
               {
@@ -2654,11 +2703,12 @@
               }
             }
           ],
-          "id": "d4ac7496-65b5-4d19-b7a7-37e02c72f915"
+          "id": "0f358f5c-22f2-4273-bc5e-1ca0b1b21a8e"
         },
         {
           "name": "boosted bet · 25% profit boost + 10% rewards",
           "request": {
+            "description": "**Why:** Pins the payout math, so a change to boost logic cannot silently change what players are paid.\n\n**Checks**\n- status 201\n- boosted payout 1000 + 770 × 1.25 = 1963\n- rewards = 10% of stake",
             "method": "POST",
             "header": [
               {
@@ -2711,11 +2761,12 @@
               }
             }
           ],
-          "id": "12fa59b1-0038-40a7-baa2-4d854504eefa"
+          "id": "9f71d2a5-ff72-45dd-8465-ede6682f03eb"
         },
         {
           "name": "legacy `stake` field → 400 naming the replacement",
           "request": {
+            "description": "**Why:** The v2 breaking change. Old clients (and models trained on the old docs) still send `stake`. The API must fail loudly and say what to send instead.\n\n**Checks**\n- status 400\n- error code is unsupported_field\n- points to stake_minor",
             "method": "POST",
             "header": [
               {
@@ -2767,11 +2818,12 @@
               }
             }
           ],
-          "id": "d1f07a41-f35d-4c06-9371-3213768012af"
+          "id": "4b2cb871-fead-4c29-a026-a01434f0b92b"
         },
         {
           "name": "decimal stake_minor → 400",
           "request": {
+            "description": "`POST /bets/v1/bets`\n\n**Checks**\n- status 400\n- error code is invalid_amount",
             "method": "POST",
             "header": [
               {
@@ -2822,11 +2874,12 @@
               }
             }
           ],
-          "id": "f03a9e34-0044-4920-ad14-85938423b55e"
+          "id": "610462a0-8729-4032-84e1-b184e877c26f"
         },
         {
           "name": "self-excluded P-1003 → 403",
           "request": {
+            "description": "**Why:** The safety net in bets: even if a caller skipped player-limits, the wager is refused.\n\n**Checks**\n- status 403\n- error code is player_not_eligible\n- reason SELF_EXCLUDED",
             "method": "POST",
             "header": [
               {
@@ -2878,11 +2931,12 @@
               }
             }
           ],
-          "id": "14178f01-49c8-4a5b-a460-7b450f37b746"
+          "id": "abb539a0-c0da-4e41-9f6d-38671261ac0c"
         },
         {
           "name": "casino in NY → 403",
           "request": {
+            "description": "`POST /bets/v1/bets`\n\n**Checks**\n- status 403\n- error code is product_not_available",
             "method": "POST",
             "header": [
               {
@@ -2933,11 +2987,12 @@
               }
             }
           ],
-          "id": "0b0db681-aa6a-4a6d-b84c-7eeed6f68060"
+          "id": "cb622aba-e22a-4069-b667-637d745c2aea"
         },
         {
           "name": "boost not claimed → 409",
           "request": {
+            "description": "**Why:** A boost only applies after a claim, so eligibility is always checked first.\n\n**Checks**\n- status 409\n- error code is boost_not_claimed",
             "method": "POST",
             "header": [
               {
@@ -2988,11 +3043,12 @@
               }
             }
           ],
-          "id": "12042859-6c98-43e3-a9c5-8720d46de7ca"
+          "id": "8c701cd8-40d5-4419-bb6e-6c0a3fdd16c1"
         },
         {
           "name": "unknown selection → 404",
           "request": {
+            "description": "`POST /bets/v1/bets`\n\n**Checks**\n- status 404\n- error code is selection_not_found",
             "method": "POST",
             "header": [
               {
@@ -3043,10 +3099,10 @@
               }
             }
           ],
-          "id": "0bd4d164-fb1b-41ff-bea4-354b38e3f293"
+          "id": "e38853bd-b577-4bdc-9818-76ac89bc3fa4"
         }
       ],
-      "id": "674294fc-5fd3-40f9-8d0a-3e2b62c796f5"
+      "id": "8237b315-8741-4f4f-83be-840042a74dda"
     }
   ],
   "event": [

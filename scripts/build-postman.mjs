@@ -110,6 +110,69 @@ const errorResponses = (svc, ep) => {
 };
 const serviceDoc = (svc) => `${svc.description}\n${docFor(svc).overview}\n${docs.auth}\n${docs.getAccess(svc)}\n${docs.conventions}\n*Ridgeline is a fictional company; all data is sandbox data.*`;
 
+
+// ---- collection documentation helpers ----
+const MOCK = process.env.MOCK_URL ?? 'https://ridgeline-sandbox.mock.postman.postman.dev';
+const pascal = (x) => x.replace(/(^|[-_/])([a-z])/g, (m, _s, c) => c.toUpperCase());
+const camel = (x) => pascal(x).replace(/^./, (c) => c.toLowerCase());
+const camelKeys = (v) => (Array.isArray(v) ? v.map(camelKeys) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [camel(k), camelKeys(x)])) : v);
+const sdkCall = (svc, ep) => {
+  const method = camel(svc.name) + pascal(ep.method.toLowerCase()) + ep.path.split('/').filter(Boolean).slice(1).map(pascal).join('');
+  const args = ep.example ? JSON.stringify(camelKeys(JSON.parse(JSON.stringify(ep.example).replace(/"\{\{boost_id\}\}"/g, '"BST-00001"'))), null, 2) : ep.query ? `{ ${ep.query.map((q) => `${camel(q.name)}: '${q.example}'`).join(', ')} }` : '';
+  return `await ${camel(svc.name)}.${camel(svc.name)}.${method}(${args})`;
+};
+const players = docs.players;
+const environmentsDoc = `
+## Environments
+
+| Environment | Use it for |
+|---|---|
+| **Ridgeline Sandbox · Mock** | Trying requests with no keys. The public mock answers every endpoint with its saved example response (no business logic) |
+| **Ridgeline Sandbox · Passport** | The real API. Keys are Passport references (\`{{vault:RIDGELINE_*_KEY}}\`), resolved by the Passport proxy |
+| **Ridgeline Sandbox · Local (no keys)** | \`npm run local\` on \`http://localhost:4100\`. Paste an owner key into the *current* value only |
+`;
+const runDoc = (file, name, { realApiOnly = false } = {}) => `
+## Run it
+
+- **In Postman:** pick an environment${realApiOnly ? ' (**Passport** or **Local**: these tests check real behavior, so the mock will fail them)' : ''}, then **Run collection** in the Collection Runner.
+- **From a terminal:** \`postman collection run public/postman/${file}.postman_collection.json -e <environment>\`
+- **From the repo, against every collection:** \`npm run test:postman${file === 'test-suite' || !realApiOnly ? '' : ' -- ' + file}\`
+`;
+const tryIt = (svc) => {
+  const ep = svc.endpoints.find((e) => e.method === 'POST' && e.example) ?? svc.endpoints[0];
+  const qs = ep.query ? '?' + ep.query.map((q) => `${q.name}=${q.example}`).join('&') : '';
+  const curl = ep.method === 'GET'
+    ? `curl -s '${MOCK}/${svc.name}${ep.path}${qs}'`
+    : `curl -s -X POST ${MOCK}/${svc.name}${ep.path} \\\n  -H 'Content-Type: application/json' \\\n  -d '${JSON.stringify(ep.example).replace(/"\{\{boost_id\}\}"/g, '"BST-00001"')}'`;
+  return `
+## Try it
+
+**Against the mock** (no key needed):
+
+\`\`\`bash
+${curl}
+\`\`\`
+
+**With the typed SDK** (\`sdks/${svc.name}/typescript\`, generated with \`postman sdk generate\`):
+
+\`\`\`ts
+import { Ridgeline${pascal(svc.name)} } from 'ridgeline-${svc.name}';
+
+const ${camel(svc.name)} = new Ridgeline${pascal(svc.name)}({ token: process.env.${svc.secretRef} }); // a Passport reference
+${camel(svc.name)}.baseUrl = 'https://<host>/${svc.name}';
+
+const result = ${sdkCall(svc, ep)};
+\`\`\`
+
+**Spec:** \`public/specs/${svc.name}.openapi.json\` (also served at \`/specs/${svc.name}.openapi.json\`).
+`;
+};
+// "Checks" list built from the pm.test names in a request's test script.
+const checksFrom = (tests = []) => {
+  const names = tests.join('\n').match(/pm\.test\('([^']+)'/g)?.map((x) => x.slice(9, -1)) ?? [];
+  return names.length ? `\n\n**Checks**\n${names.map((n) => `- ${n}`).join('\n')}` : '';
+};
+
 const specFor = (svc, { legacy = false } = {}) => ({
   openapi: '3.0.3',
   info: {
@@ -211,7 +274,7 @@ for (const svc of services) {
     `public/postman/${svc.name}.postman_collection.json`,
     collection(
       `Ridgeline · ${svc.title}`,
-      `${serviceDoc(svc)}\n\n## In this collection\n\nAuth is set once on the collection: Bearer \`{{${varName(svc.name)}}}\`. In the **Ridgeline Sandbox · Passport** environment that variable is \`{{vault:${svc.secretRef}}}\`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.`,
+      `${serviceDoc(svc)}\n\n## In this collection\n\nAuth is set once on the collection: Bearer \`{{${varName(svc.name)}}}\`. In the **Ridgeline Sandbox · Passport** environment that variable is \`{{vault:${svc.secretRef}}}\`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.\n${tryIt(svc)}\n${environmentsDoc}\n${runDoc(svc.name, svc.title)}`,
       svc.endpoints.map((ep) => requestItem(svc, ep)),
       { auth: bearer(svc.name), variable: [{ key: 'boost_id', value: 'BST-00001' }] },
     ),
@@ -221,13 +284,49 @@ for (const svc of services) {
 // E2E: the ticket done right. Order matters; run with the Collection Runner.
 const S = Object.fromEntries(services.map((s) => [s.name, s]));
 const E = (svc, method, path) => S[svc].endpoints.find((e) => e.method === method && e.path === path);
-const step = (n, svc, method, path, example, tests, name) => requestItem(S[svc], E(svc, method, path), { name: `${n}. ${name}`, example, tests, auth: bearer(svc) });
+const STEP_WHY = {
+  1: 'Create the boost the campaign offers. Saves `boost_id` for the later steps.',
+  2: 'Before any offer: ask player-limits. P-1001 is active, so the offer can go ahead.',
+  3: 'P-1003 is self-excluded. `may_receive_promotions` is `false`, so this player is skipped. Promotions would not stop you; this check is the only thing that does.',
+  4: 'P-1005 is in cool-off, which gets the same treatment as self-exclusion: skipped.',
+  5: 'Casino is not available in NY, so P-1004 is offered sportsbook only.',
+  6: 'Claim the boost for the eligible player only.',
+  7: 'Place the boosted bet in `stake_minor` (cents). The boost raises the payout and credits 10% of the stake as rewards.',
+  8: 'The end-state check. Every call above can return 200 and the campaign can still be wrong, so this verifies what is actually true afterwards: no protected player holds a claim.',
+  9: 'The rewards actually landed in the wallet.',
+};
+const step = (n, svc, method, path, example, tests, name) => {
+  const it = requestItem(S[svc], E(svc, method, path), { name: `${n}. ${name}`, example, tests, auth: bearer(svc) });
+  it.request.description = `**Step ${n}.** ${STEP_WHY[n] ?? ''}${checksFrom(tests)}\n\n---\n\n**About this endpoint:** ${it.request.description}`;
+  return it;
+};
 const elig = (pid) => ({ player_id: pid, product: 'sportsbook', amount_minor: 1000 });
 out(
   'public/postman/e2e-championship-boost.postman_collection.json',
   collection(
     'Ridgeline · Championship Rewards Boost (E2E)',
-    'The ticket, done right: create the boost, check **player-limits** and **geo-compliance** before every offer, claim only for eligible players, place a boosted bet in `stake_minor`, then assert the **end state**: no self-excluded or cool-off player holds a claim. Run in order with the Collection Runner. Each request uses its own service key via a Passport reference.',
+    `The championship rewards boost, done right. This is the flow a coding agent got wrong in the demo, written down and tested.
+
+## The flow
+
+| Step | API | What happens |
+|---|---|---|
+| 1 | promotions | Create the boost |
+| 2 to 4 | player-limits | Check every player **before** any offer. P-1003 (self-excluded) and P-1005 (cool-off) are skipped |
+| 5 | geo-compliance | P-1004 is in NY, so casino is not offered |
+| 6 | promotions | Claim for eligible players only |
+| 7 | bets | Place the boosted bet in \`stake_minor\` (cents) |
+| 8 | promotions | **End state:** no protected player holds a claim |
+| 9 | wallet | The rewards landed |
+
+## Why the end-state check matters
+
+Every call in this flow can return \`200\` while the campaign is still wrong: promotions does not check responsible gaming, so offering a boost to a self-excluded player succeeds. Step 8 checks what is actually true afterwards instead of trusting the status codes.
+
+**Run the steps in order** (they share \`boost_id\` through a collection variable). Each request uses its own API's key, as a Passport reference in the Passport environment.
+
+${environmentsDoc}
+${runDoc('e2e-championship-boost', 'Championship Rewards Boost (E2E)', { realApiOnly: true })}`,
     [
       step(1, 'promotions', 'POST', '/v1/boosts', E('promotions', 'POST', '/v1/boosts').example, ["pm.test('boost created', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('boost_id', pm.response.json().boost_id);"], 'Create the championship boost'),
       step(2, 'player-limits', 'POST', '/v1/eligibility/check', elig('P-1001'), ["pm.test('P-1001 may receive promotions', () => pm.expect(pm.response.json().may_receive_promotions).to.be.true);"], 'Eligibility: P-1001 (NJ, active)'),
@@ -252,7 +351,21 @@ out(
   'public/postman/sportsbook-app-contract.postman_collection.json',
   collection(
     'Ridgeline · sportsbook-app consumer contract',
-    'Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer\'s own tests but breaks these fails the build.',
+    `A **consumer-driven contract**: the assertions the **sportsbook-app** team (a consumer of bets and player-limits) depends on. The producer's own tests can all pass while a change breaks a consumer; these catch that.
+
+| Request | Protects |
+|---|---|
+| bets · response shape | The fields the app renders (\`bet_id\`, \`status\`, \`stake_minor\`, \`potential_payout_minor\`, ...) validated against JSON Schema |
+| bets · legacy \`stake\` rejected | That an old client sending \`stake\` fails loudly with a named replacement, instead of being silently accepted |
+| player-limits · offer gating | That \`may_receive_promotions\` is present, because the app hides offers on it |
+
+**Owner:** sportsbook-app team. **Run on every change** to bets or player-limits, in CI:
+
+\`\`\`bash
+postman collection run public/postman/sportsbook-app-contract.postman_collection.json -e <environment>
+\`\`\`
+
+${environmentsDoc}`,
     [
       step(1, 'bets', 'POST', '/v1/bets', { player_id: 'P-1001', selections: [{ market_id: 'MKT-TOT-001', outcome_id: 'OUT-OVER' }], stake_minor: 500 }, ["pm.test('bet response matches sportsbook-app contract', () => pm.response.to.have.jsonSchema(" + JSON.stringify(betResponse) + '));', "pm.test('stake echoed in cents', () => pm.expect(pm.response.json().stake_minor).to.eql(500));"], 'bets: response shape the app renders'),
       step(2, 'bets', 'POST', '/v1/bets', { player_id: 'P-1001', selections: [{ market_id: 'MKT-TOT-001', outcome_id: 'OUT-OVER' }], stake: 5.0 }, ["pm.test('legacy `stake` is rejected, not silently accepted', () => pm.response.to.have.status(400));", "pm.test('error names the replacement field', () => pm.expect(pm.response.json().replacement).to.eql('stake_minor'));"], 'bets: legacy `stake` is rejected loudly'),
@@ -263,12 +376,28 @@ out(
 
 // ---------- 3b. Test suite: auth, functional, business rules, negative cases ----------
 // Order-independent against shared state: every test creates what it needs (e.g. its own boost).
+// Why a test exists, for the request docs. Keyed by test name; anything not listed gets its checks only.
+const WHY = {
+  'P-1003 self-excluded → blocked, no promotions': 'The rule that matters most in this domain. A self-excluded player must never be shown or given a promotion, so `may_receive_promotions` has to be `false` whatever the amount.',
+  'P-1005 cool-off → blocked, no promotions': 'Cool-off is temporary self-exclusion and gets the same treatment: no wagers, no promotions.',
+  'P-1002 over daily limit → wager blocked, promotions still allowed': 'The two questions are different. A daily limit blocks the wager, but it is not a reason to withhold promotions. Callers that conflate them get this wrong.',
+  'P-1001 active → eligible': 'The happy path, so a regression that blocks everyone shows up here.',
+  'NY · casino not available': 'Casino is legal in some states only. Offers and bets for casino must check location first.',
+  'replaying the same idempotency key does not double-credit': 'Agents retry. A credit that is not idempotent pays twice when an agent retries after a timeout.',
+  'legacy `stake` field → 400 naming the replacement': 'The v2 breaking change. Old clients (and models trained on the old docs) still send `stake`. The API must fail loudly and say what to send instead.',
+  'boosted bet · 25% profit boost + 10% rewards': 'Pins the payout math, so a change to boost logic cannot silently change what players are paid.',
+  'self-excluded P-1003 → 403': 'The safety net in bets: even if a caller skipped player-limits, the wager is refused.',
+  'boost not claimed → 409': 'A boost only applies after a claim, so eligibility is always checked first.',
+  'claiming twice is idempotent': 'Retries must not create duplicate claims.',
+};
 const tr = (name, svc, method, path, tests, { json, query, auth = bearer(svc), headers = [], pre } = {}) => {
   const q = query ? Object.entries(query).map(([key, value]) => ({ key, value })) : [];
   const segs = [svc, ...path.split('/').filter(Boolean)];
+  const why = WHY[safeName(name)];
   return {
     name: safeName(name),
     request: {
+      description: `${why ? `**Why:** ${why}` : `\`${method} /${svc}${path}\``}${checksFrom(tests)}`,
       method,
       header: [{ key: 'Content-Type', value: 'application/json' }, ...headers],
       url: { raw: `{{base_url}}/${segs.join('/')}${q.length ? '?' + q.map((x) => `${x.key}=${x.value}`).join('&') : ''}`, host: ['{{base_url}}'], path: segs, ...(q.length ? { query: q } : {}) },
@@ -278,7 +407,11 @@ const tr = (name, svc, method, path, tests, { json, query, auth = bearer(svc), h
     event: [...(pre ? [{ listen: 'prerequest', script: { type: 'text/javascript', exec: pre } }] : []), { listen: 'test', script: { type: 'text/javascript', exec: tests } }],
   };
 };
-const folder = (name, description, item) => ({ name, description, item });
+const folder = (name, description, item, svcName) => {
+  const svc = services.find((x) => x.name === svcName);
+  const head = svc ? `${description}\n\n**API:** ${svc.title} · **Owner:** ${svc.owner}\n\n${svc.description.replace(/\*\*/g, '')}` : description;
+  return { name, description: `${head}\n\n**${item.length} requests** in this folder. Each one checks its status and error code, plus response time and content type at the collection level.`, item };
+};
 const status = (code) => `pm.test('status ${code}', () => pm.response.to.have.status(${code}));`;
 const errorIs = (code) => `pm.test('error code is ${code}', () => pm.expect(pm.response.json().error).to.eql('${code}'));`;
 const noAuth = { type: 'noauth' };
@@ -291,9 +424,27 @@ out(
   'public/postman/test-suite.postman_collection.json',
   collection(
     'Ridgeline · Test Suite',
-    'Automated tests for every Ridgeline API: **auth** (each API only accepts its own key, and rejects unresolved Passport references), **functional** behavior, **business rules** (self-exclusion, cool-off, daily limits, state availability, the v2 `stake_minor` contract) and **negative cases**. Run with the Collection Runner, `postman collection run`, or Newman. Every request also checks response time and JSON content type (collection-level tests).',
+    `Automated tests for every Ridgeline API: **auth**, **functional** behavior, **business rules** and **negative cases**. 56 requests and 230 assertions, all order-independent: each test creates what it needs (its own boost, its own idempotency key), so folders can run alone.
+
+## What's covered
+
+| Folder | Requests | What it proves |
+|---|---|---|
+| Auth | 24 | Each API accepts only its own key, and rejects a missing key, another API's key, and an unresolved Passport reference |
+| Markets | 3 | Events and markets are listed, filtered by event, with valid odds |
+| Player limits | 8 | Self-exclusion and cool-off block wagers **and** promotions; a daily limit blocks wagers only; bad input fails with the right code |
+| Geo compliance | 3 | Casino availability by state |
+| Wallet | 4 | Balances are integer cents; rewards credits are idempotent |
+| Promotions | 6 | Boosts and claims work, claims are idempotent, unknown IDs return 404 |
+| Bets | 8 | Payout math with and without a boost, the v2 \`stake_minor\` contract, and the platform safety nets |
+
+Every request also checks response time (under 2s) and JSON content type, from collection-level tests. Each request's docs say why it exists and list its checks.
+
+${players}
+${environmentsDoc}
+${runDoc('test-suite', 'Ridgeline · Test Suite', { realApiOnly: true })}`,
     [
-      folder('Auth', 'Each API accepts only its own bearer key.', Object.entries(authProbe).flatMap(([svc, [method, path, json]]) => [
+      folder('Auth', 'Each API accepts only its own bearer key. For every API: no key, another API\'s key, an unresolved Passport reference, and its own key. The unresolved-reference check builds the header in a pre-request script so the client sends the literal `{{vault:...}}` instead of resolving it.', Object.entries(authProbe).flatMap(([svc, [method, path, json]]) => [
         tr(`${svc}: no key → 401`, svc, method, path, [status(401), errorIs('unauthorized')], { json, auth: noAuth }),
         tr(`${svc}: another API's key → 401`, svc, method, path, [status(401), errorIs('unauthorized')], { json, auth: bearer(other(svc)) }),
         tr(`${svc}: unresolved Passport reference → 401`, svc, method, path, [status(401), "pm.test('rejected as unresolved reference (or unauthorized if the client resolved it)', () => pm.expect(['unresolved_reference', 'unauthorized']).to.include(pm.response.json().error));"], {
@@ -306,7 +457,7 @@ out(
         tr('events include the championship final', 'markets', 'GET', '/v1/events', [status(200), "pm.test('EVT-FINAL-2026 listed', () => pm.expect(pm.response.json().events.map(e => e.event_id)).to.include('EVT-FINAL-2026'));"]),
         tr('markets filter by event, odds are valid', 'markets', 'GET', '/v1/markets', [status(200), "const m = pm.response.json().markets;", "pm.test('only the requested event', () => m.forEach(x => pm.expect(x.event_id).to.eql('EVT-FINAL-2026')));", "pm.test('every outcome has decimal odds > 1', () => m.flatMap(x => x.outcomes).forEach(o => pm.expect(o.decimal_odds).to.be.above(1)));"], { query: { event_id: 'EVT-FINAL-2026' } }),
         tr('unknown event returns an empty list', 'markets', 'GET', '/v1/markets', [status(200), "pm.test('no markets', () => pm.expect(pm.response.json().markets).to.have.length(0));"], { query: { event_id: 'EVT-NOPE' } }),
-      ]),
+      ], 'markets'),
       folder('Player limits (responsible gaming)', 'The single source of truth for player protection.', [
         tr('P-1001 active → eligible', 'player-limits', 'POST', '/v1/eligibility/check', [status(200), "const r = pm.response.json();", "pm.test('eligible', () => pm.expect(r.eligible).to.be.true);", "pm.test('may receive promotions', () => pm.expect(r.may_receive_promotions).to.be.true);"], { json: { player_id: 'P-1001', product: 'sportsbook', amount_minor: 1000 } }),
         tr('P-1003 self-excluded → blocked, no promotions', 'player-limits', 'POST', '/v1/eligibility/check', [status(200), "const r = pm.response.json();", "pm.test('not eligible', () => pm.expect(r.eligible).to.be.false);", "pm.test('reason SELF_EXCLUDED', () => pm.expect(r.reasons).to.include('SELF_EXCLUDED'));", "pm.test('must not receive promotions', () => pm.expect(r.may_receive_promotions).to.be.false);"], { json: { player_id: 'P-1003', product: 'sportsbook' } }),
@@ -316,18 +467,18 @@ out(
         tr('missing player_id → 400', 'player-limits', 'POST', '/v1/eligibility/check', [status(400), errorIs('missing_fields')], { json: { product: 'sportsbook' } }),
         tr('unknown player → 404', 'player-limits', 'POST', '/v1/eligibility/check', [status(404), errorIs('player_not_found')], { json: { player_id: 'P-9999', product: 'sportsbook' } }),
         tr('limits for P-1002', 'player-limits', 'POST', '/v1/limits', [status(200), "const r = pm.response.json();", "pm.test('integer cents', () => { pm.expect(Number.isInteger(r.daily_wager_limit_minor)).to.be.true; pm.expect(Number.isInteger(r.wagered_today_minor)).to.be.true; });"], { json: { player_id: 'P-1002' } }),
-      ]),
+      ], 'player-limits'),
       folder('Geo compliance', 'Product availability by state.', [
         tr('NY: casino not available', 'geo-compliance', 'POST', '/v1/location/check', [status(200), "pm.test('not allowed', () => pm.expect(pm.response.json().allowed).to.be.false);", "pm.test('reason given', () => pm.expect(pm.response.json().reason).to.eql('PRODUCT_NOT_AVAILABLE_IN_STATE'));"], { json: { player_id: 'P-1004', product: 'casino' } }),
         tr('NY: sportsbook available', 'geo-compliance', 'POST', '/v1/location/check', [status(200), "pm.test('allowed', () => pm.expect(pm.response.json().allowed).to.be.true);"], { json: { player_id: 'P-1004', product: 'sportsbook' } }),
         tr('NJ: casino available', 'geo-compliance', 'POST', '/v1/location/check', [status(200), "pm.test('allowed', () => pm.expect(pm.response.json().allowed).to.be.true);"], { json: { player_id: 'P-1001', product: 'casino' } }),
-      ]),
+      ], 'geo-compliance'),
       folder('Wallet', 'Balances and idempotent rewards credits.', [
         tr('balance is integer cents', 'wallet', 'POST', '/v1/wallet/balance', [status(200), "const w = pm.response.json();", "pm.test('integer amounts', () => ['cash_minor', 'bonus_minor', 'rewards_minor'].forEach(k => pm.expect(Number.isInteger(w[k])).to.be.true));", "pm.collectionVariables.set('rewards_before', w.rewards_minor);"], { json: { player_id: 'P-1004' } }),
         tr('credit rewards (new idempotency key)', 'wallet', 'POST', '/v1/wallet/rewards/credit', [status(201), "pm.test('balance increased by 50', () => pm.expect(pm.response.json().rewards_minor).to.eql(Number(pm.collectionVariables.get('rewards_before')) + 50));", "pm.collectionVariables.set('rewards_after', pm.response.json().rewards_minor);"], { json: { player_id: 'P-1004', amount_minor: 50, reason: 'test suite', idempotency_key: '{{credit_key}}' }, pre: ["pm.collectionVariables.set('credit_key', 'suite-' + Date.now());"] }),
         tr('replaying the same idempotency key does not double-credit', 'wallet', 'POST', '/v1/wallet/rewards/credit', [status(201), "pm.test('balance unchanged on replay', () => pm.expect(pm.response.json().rewards_minor).to.eql(Number(pm.collectionVariables.get('rewards_after'))));"], { json: { player_id: 'P-1004', amount_minor: 50, reason: 'test suite', idempotency_key: '{{credit_key}}' } }),
         tr('decimal amount → 400', 'wallet', 'POST', '/v1/wallet/rewards/credit', [status(400), errorIs('invalid_amount')], { json: { player_id: 'P-1004', amount_minor: 0.5, reason: 'x', idempotency_key: 'x' } }),
-      ]),
+      ], 'wallet'),
       folder('Promotions', 'Boosts and claims (callers must check eligibility first).', [
         tr('create a boost', 'promotions', 'POST', '/v1/boosts', [status(201), "const b = pm.response.json();", "pm.test('has a boost_id', () => pm.expect(b.boost_id).to.match(/^BST-/));", "pm.test('active', () => pm.expect(b.status).to.eql('active'));", "pm.collectionVariables.set('suite_boost_id', b.boost_id);"], { json: newBoost('Test Suite Boost') }),
         tr('unknown market → 404', 'promotions', 'POST', '/v1/boosts', [status(404), errorIs('market_not_found')], { json: { ...newBoost('Bad'), market_id: 'MKT-NOPE' } }),
@@ -335,7 +486,7 @@ out(
         tr('claiming twice is idempotent', 'promotions', 'POST', '/v1/boosts/claim', [status(201), "pm.collectionVariables.set('suite_claim_id', pm.response.json().claim_id);"], { json: { boost_id: '{{suite_boost_id}}', player_id: 'P-1001' } }),
         tr('claims list has exactly one claim for P-1001', 'promotions', 'GET', '/v1/boosts/claims', [status(200), "const c = pm.response.json().claims.filter(x => x.player_id === 'P-1001');", "pm.test('one claim', () => pm.expect(c).to.have.length(1));"], { query: { boost_id: '{{suite_boost_id}}' } }),
         tr('unknown boost → 404', 'promotions', 'POST', '/v1/boosts/claim', [status(404), errorIs('boost_not_found')], { json: { boost_id: 'BST-NOPE', player_id: 'P-1001' } }),
-      ]),
+      ], 'promotions'),
       folder('Bets', 'v2 contract (stake_minor) and platform safety nets.', [
         tr('valid bet: payout = stake × odds', 'bets', 'POST', '/v1/bets', [status(201), "const b = pm.response.json();", "pm.test('accepted', () => pm.expect(b.status).to.eql('accepted'));", "pm.test('payout 1000 × 1.77 = 1770', () => pm.expect(b.potential_payout_minor).to.eql(1770));", "pm.test('no rewards without a boost', () => pm.expect(b.rewards_earned_minor).to.eql(0));"], { json: { player_id: 'P-1001', selections: ML, stake_minor: 1000 } }),
         tr('boosted bet: 25% profit boost + 10% rewards', 'bets', 'POST', '/v1/bets', [status(201), "const b = pm.response.json();", "pm.test('boosted payout 1000 + 770 × 1.25 = 1963', () => pm.expect(b.potential_payout_minor).to.eql(1963));", "pm.test('rewards = 10% of stake', () => pm.expect(b.rewards_earned_minor).to.eql(100));"], { json: { player_id: 'P-1001', selections: ML, stake_minor: 1000, boost_id: '{{suite_boost_id}}' } }),
@@ -345,7 +496,7 @@ out(
         tr('casino in NY → 403', 'bets', 'POST', '/v1/bets', [status(403), errorIs('product_not_available')], { json: { player_id: 'P-1004', product: 'casino', selections: ML, stake_minor: 1000 } }),
         tr('boost not claimed → 409', 'bets', 'POST', '/v1/bets', [status(409), errorIs('boost_not_claimed')], { json: { player_id: 'P-1004', selections: ML, stake_minor: 1000, boost_id: '{{suite_boost_id}}' } }),
         tr('unknown selection → 404', 'bets', 'POST', '/v1/bets', [status(404), errorIs('selection_not_found')], { json: { player_id: 'P-1001', selections: [{ market_id: 'MKT-ML-001', outcome_id: 'OUT-NOPE' }], stake_minor: 1000 } }),
-      ]),
+      ], 'bets'),
     ],
     {
       event: [{ listen: 'test', script: { type: 'text/javascript', exec: ["pm.test('responds in under 2s', () => pm.expect(pm.response.responseTime).to.be.below(2000));", "pm.test('JSON content type', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));"] } }],

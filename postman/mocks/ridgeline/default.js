@@ -41,25 +41,25 @@ const server = http.createServer((req, res) => {
   // @endpoint POST /promotions/v1/boosts
   if (req.method === 'POST' && pathname === '/promotions/v1/boosts') {
     res.writeHead(201, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"boost_id":"BST-00001","name":"Championship Rewards Boost","market_id":"MKT-ML-001","profit_boost_pct":25,"rewards_back_pct":10,"products":["sportsbook","casino"],"status":"active","created_at":"2026-10-07T20:02:15.130Z"}));
+    return res.end(JSON.stringify({"boost_id":"BST-00001","name":"Championship Rewards Boost","market_id":"MKT-ML-001","profit_boost_pct":25,"rewards_back_pct":10,"products":["sportsbook","casino"],"status":"active","created_at":"2026-10-07T20:34:34.234Z"}));
   }
 
   // @endpoint POST /promotions/v1/boosts/claim
   if (req.method === 'POST' && pathname === '/promotions/v1/boosts/claim') {
     res.writeHead(201, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"claim_id":"CLM-00002","boost_id":"BST-00001","player_id":"P-1001","claimed_at":"2026-10-07T20:02:15.130Z"}));
+    return res.end(JSON.stringify({"claim_id":"CLM-00002","boost_id":"BST-00001","player_id":"P-1001","claimed_at":"2026-10-07T20:34:34.235Z"}));
   }
 
   // @endpoint GET /promotions/v1/boosts/claims
   if (req.method === 'GET' && pathname === '/promotions/v1/boosts/claims') {
     res.writeHead(200, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"claims":[{"claim_id":"CLM-00002","boost_id":"BST-00001","player_id":"P-1001","claimed_at":"2026-10-07T20:02:15.130Z"}]}));
+    return res.end(JSON.stringify({"claims":[{"claim_id":"CLM-00002","boost_id":"BST-00001","player_id":"P-1001","claimed_at":"2026-10-07T20:34:34.235Z"}]}));
   }
 
   // @endpoint POST /player-limits/v1/eligibility/check
   if (req.method === 'POST' && pathname === '/player-limits/v1/eligibility/check') {
     res.writeHead(200, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"player_id":"P-1003","product":"sportsbook","eligible":false,"reasons":["SELF_EXCLUDED"],"may_receive_promotions":false,"remaining_daily_wager_minor":50000,"checked_at":"2026-10-07T20:02:15.131Z"}));
+    return res.end(JSON.stringify({"player_id":"P-1003","product":"sportsbook","eligible":false,"reasons":["SELF_EXCLUDED"],"may_receive_promotions":false,"remaining_daily_wager_minor":50000,"checked_at":"2026-10-07T20:34:34.235Z"}));
   }
 
   // @endpoint POST /player-limits/v1/limits
@@ -71,13 +71,13 @@ const server = http.createServer((req, res) => {
   // @endpoint POST /bets/v1/bets
   if (req.method === 'POST' && pathname === '/bets/v1/bets') {
     res.writeHead(201, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"bet_id":"BET-00003","player_id":"P-1001","status":"accepted","product":"sportsbook","selections":[{"market_id":"MKT-ML-001","outcome_id":"OUT-HAWKS"}],"stake_minor":1000,"potential_payout_minor":1770,"boost_id":null,"rewards_earned_minor":0,"placed_at":"2026-10-07T20:02:15.131Z"}));
+    return res.end(JSON.stringify({"bet_id":"BET-00003","player_id":"P-1001","status":"accepted","product":"sportsbook","selections":[{"market_id":"MKT-ML-001","outcome_id":"OUT-HAWKS"}],"stake_minor":1000,"potential_payout_minor":1770,"boost_id":null,"rewards_earned_minor":0,"placed_at":"2026-10-07T20:34:34.235Z"}));
   }
 
   // @endpoint GET /bets/v1/bets
   if (req.method === 'GET' && pathname === '/bets/v1/bets') {
     res.writeHead(200, {"Content-Type":"application/json"});
-    return res.end(JSON.stringify({"bets":[{"bet_id":"BET-00003","player_id":"P-1001","status":"accepted","product":"sportsbook","selections":[{"market_id":"MKT-ML-001","outcome_id":"OUT-HAWKS"}],"stake_minor":1000,"potential_payout_minor":1770,"boost_id":null,"rewards_earned_minor":0,"placed_at":"2026-10-07T20:02:15.131Z"}]}));
+    return res.end(JSON.stringify({"bets":[{"bet_id":"BET-00003","player_id":"P-1001","status":"accepted","product":"sportsbook","selections":[{"market_id":"MKT-ML-001","outcome_id":"OUT-HAWKS"}],"stake_minor":1000,"potential_payout_minor":1770,"boost_id":null,"rewards_earned_minor":0,"placed_at":"2026-10-07T20:34:34.235Z"}]}));
   }
 
   // @endpoint POST /geo-compliance/v1/location/check

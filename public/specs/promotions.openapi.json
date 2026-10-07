@@ -181,7 +181,7 @@
                     "casino"
                   ],
                   "status": "active",
-                  "created_at": "2026-10-07T20:02:15.130Z"
+                  "created_at": "2026-10-07T20:34:34.234Z"
                 }
               }
             }
@@ -390,7 +390,7 @@
                   "claim_id": "CLM-00002",
                   "boost_id": "BST-00001",
                   "player_id": "P-1001",
-                  "claimed_at": "2026-10-07T20:02:15.130Z"
+                  "claimed_at": "2026-10-07T20:34:34.235Z"
                 }
               }
             }
@@ -583,7 +583,7 @@
                       "claim_id": "CLM-00002",
                       "boost_id": "BST-00001",
                       "player_id": "P-1001",
-                      "claimed_at": "2026-10-07T20:02:15.130Z"
+                      "claimed_at": "2026-10-07T20:34:34.235Z"
                     }
                   ]
                 }

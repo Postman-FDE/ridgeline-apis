@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "0fd70350-6311-405a-a3bb-a4ed7ea07e93",
+    "_postman_id": "7fe39551-5b96-4cb5-8056-47eb9574792a",
     "name": "Ridgeline · Promotions API",
-    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Promotions API**, owned by **Team Promotions**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Promotions API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Promotions. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_PROMOTIONS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{promotions_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
+    "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Getting access (credential acquisition)\n\n1. **Find the API** in the Postman API Catalog (or the Ridgeline Sandbox workspace): **Promotions API**, owned by **Team Promotions**.\n2. **Request access** in Postman Passport: namespace **Ridgeline Sandbox**, resource group **Promotions API**. Pick the shortest duration that covers the job and give a reason.\n3. **Wait for approval** from Team Promotions. The grant is scoped to this API's endpoints (method + host + path) and expires on its own.\n4. **Use the reference**, not a key: `passport whoami` shows it, e.g. `{{vault:RIDGELINE_PROMOTIONS_KEY}}`. Send it as `Authorization: Bearer {{vault:RIDGELINE_PROMOTIONS_KEY}}` through the Passport proxy.\n\nThere are no scopes beyond the endpoint grant. One grant per API: a key for one API never works on another.\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{promotions_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.\n\n## Try it\n\n**Against the mock** (no key needed):\n\n```bash\ncurl -s -X POST https://ridgeline-sandbox.mock.postman.postman.dev/promotions/v1/boosts \\\n  -H 'Content-Type: application/json' \\\n  -d '{\"name\":\"Championship Rewards Boost\",\"market_id\":\"MKT-ML-001\",\"profit_boost_pct\":25,\"rewards_back_pct\":10,\"products\":[\"sportsbook\",\"casino\"]}'\n```\n\n**With the typed SDK** (`sdks/promotions/typescript`, generated with `postman sdk generate`):\n\n```ts\nimport { RidgelinePromotions } from 'ridgeline-promotions';\n\nconst promotions = new RidgelinePromotions({ token: process.env.RIDGELINE_PROMOTIONS_KEY }); // a Passport reference\npromotions.baseUrl = 'https://<host>/promotions';\n\nconst result = await promotions.promotions.promotionsPostBoosts({\n  \"name\": \"Championship Rewards Boost\",\n  \"marketId\": \"MKT-ML-001\",\n  \"profitBoostPct\": 25,\n  \"rewardsBackPct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n});\n```\n\n**Spec:** `public/specs/promotions.openapi.json` (also served at `/specs/promotions.openapi.json`).\n\n\n## Environments\n\n| Environment | Use it for |\n|---|---|\n| **Ridgeline Sandbox · Mock** | Trying requests with no keys. The public mock answers every endpoint with its saved example response (no business logic) |\n| **Ridgeline Sandbox · Passport** | The real API. Keys are Passport references (`{{vault:RIDGELINE_*_KEY}}`), resolved by the Passport proxy |\n| **Ridgeline Sandbox · Local (no keys)** | `npm run local` on `http://localhost:4100`. Paste an owner key into the *current* value only |\n\n\n## Run it\n\n- **In Postman:** pick an environment, then **Run collection** in the Collection Runner.\n- **From a terminal:** `postman collection run public/postman/promotions.postman_collection.json -e <environment>`\n- **From the repo, against every collection:** `npm run test:postman`\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -76,10 +76,10 @@
           ],
           "body": "{\n  \"boosts\": []\n}",
           "_postman_previewlanguage": "json",
-          "id": "da877ba0-7e04-44cb-af99-a27b1b48c72b"
+          "id": "9cf228b8-a667-499f-8668-f4285acd17f2"
         }
       ],
-      "id": "3b33a6c7-f278-45ca-9708-96b21a836b38"
+      "id": "772d9872-379e-4ecd-bff6-5042c4cfe924"
     },
     {
       "name": "Create a boost",
@@ -168,12 +168,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T20:02:15.130Z\"\n}",
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T20:34:34.234Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "042f8bfd-4aa2-41e3-b455-62061aa7f7cd"
+          "id": "8211caa6-ef72-4571-9676-cce7e62a9153"
         }
       ],
-      "id": "8db9f108-047e-461a-8331-328ac286ad58"
+      "id": "983571d1-d653-4c7f-a607-733acb6de947"
     },
     {
       "name": "Claim a boost for a player (caller must check eligibility first)",
@@ -263,12 +263,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T20:02:15.130Z\"\n}",
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "8d012c69-92f0-4824-b242-2bf803512604"
+          "id": "9db38d6c-9c7c-48af-8cf0-5022d6ec7344"
         }
       ],
-      "id": "0bb8d01e-69d2-432f-aa3d-51e01125f410"
+      "id": "4e81632b-8da0-4221-b68a-92131cccbccd"
     },
     {
       "name": "List claims for a boost",
@@ -354,12 +354,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T20:02:15.130Z\"\n    }\n  ]\n}",
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T20:34:34.235Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "02d6c7b4-dbdf-45b6-a7be-66a77e293330"
+          "id": "8f916f97-b4ce-4f4b-be67-7a127c32be64"
         }
       ],
-      "id": "f555795d-595c-44a8-bf22-86bf326c7759"
+      "id": "9ccb51cf-0f67-4bf9-86b9-4f40b2fdaabf"
     }
   ],
   "auth": {

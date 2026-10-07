@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "283d504f-7ef5-4027-85f2-7c5bed1d77b6",
+    "_postman_id": "e87e79a1-a6b7-43c3-b24a-b04516b7b59a",
     "name": "Ridgeline · Championship Rewards Boost (E2E)",
-    "description": "The ticket, done right: create the boost, check **player-limits** and **geo-compliance** before every offer, claim only for eligible players, place a boosted bet in `stake_minor`, then assert the **end state**: no self-excluded or cool-off player holds a claim. Run in order with the Collection Runner. Each request uses its own service key via a Passport reference.",
+    "description": "The championship rewards boost, done right. This is the flow a coding agent got wrong in the demo, written down and tested.\n\n## The flow\n\n| Step | API | What happens |\n|---|---|---|\n| 1 | promotions | Create the boost |\n| 2 to 4 | player-limits | Check every player **before** any offer. P-1003 (self-excluded) and P-1005 (cool-off) are skipped |\n| 5 | geo-compliance | P-1004 is in NY, so casino is not offered |\n| 6 | promotions | Claim for eligible players only |\n| 7 | bets | Place the boosted bet in `stake_minor` (cents) |\n| 8 | promotions | **End state:** no protected player holds a claim |\n| 9 | wallet | The rewards landed |\n\n## Why the end-state check matters\n\nEvery call in this flow can return `200` while the campaign is still wrong: promotions does not check responsible gaming, so offering a boost to a self-excluded player succeeds. Step 8 checks what is actually true afterwards instead of trusting the status codes.\n\n**Run the steps in order** (they share `boost_id` through a collection variable). Each request uses its own API's key, as a Passport reference in the Passport environment.\n\n\n## Environments\n\n| Environment | Use it for |\n|---|---|\n| **Ridgeline Sandbox · Mock** | Trying requests with no keys. The public mock answers every endpoint with its saved example response (no business logic) |\n| **Ridgeline Sandbox · Passport** | The real API. Keys are Passport references (`{{vault:RIDGELINE_*_KEY}}`), resolved by the Passport proxy |\n| **Ridgeline Sandbox · Local (no keys)** | `npm run local` on `http://localhost:4100`. Paste an owner key into the *current* value only |\n\n\n## Run it\n\n- **In Postman:** pick an environment (**Passport** or **Local**: these tests check real behavior, so the mock will fail them), then **Run collection** in the Collection Runner.\n- **From a terminal:** `postman collection run public/postman/e2e-championship-boost.postman_collection.json -e <environment>`\n- **From the repo, against every collection:** `npm run test:postman -- e2e-championship-boost`\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -27,7 +27,7 @@
             "boosts"
           ]
         },
-        "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. | yes | Look up a valid `market_id` with markets `GET /v1/markets`, then retry. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 1.** Create the boost the campaign offers. Saves `boost_id` for the later steps.\n\n**Checks**\n- boost created\n\n---\n\n**About this endpoint:** Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. | yes | Look up a valid `market_id` with markets `GET /v1/markets`, then retry. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -82,7 +82,7 @@
                 "boosts"
               ]
             },
-            "description": "Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. | yes | Look up a valid `market_id` with markets `GET /v1/markets`, then retry. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 1.** Create the boost the campaign offers. Saves `boost_id` for the later steps.\n\n**Checks**\n- boost created\n\n---\n\n**About this endpoint:** Create a boost on a market. `profit_boost_pct` raises the profit of a winning bet; `rewards_back_pct` credits a share of the stake as rewards when the boosted bet is placed.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `market_not_found` | Unknown `market_id`. | yes | Look up a valid `market_id` with markets `GET /v1/markets`, then retry. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}",
@@ -111,12 +111,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T20:02:15.130Z\"\n}",
+          "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T20:34:34.234Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "766084d8-b9f5-40f0-a9d1-73016733e7c1"
+          "id": "f8db95df-6b7b-4ae8-9e4c-6c794e598838"
         }
       ],
-      "id": "bb663c6c-c916-4e11-9f3a-16fb48502f79"
+      "id": "695b1be4-0dd1-44d4-a951-7f93428bc692"
     },
     {
       "name": "2. Eligibility · P-1001 (NJ, active)",
@@ -140,7 +140,7 @@
             "check"
           ]
         },
-        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 2.** Before any offer: ask player-limits. P-1001 is active, so the offer can go ahead.\n\n**Checks**\n- P-1001 may receive promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -195,7 +195,7 @@
                 "check"
               ]
             },
-            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 2.** Before any offer: ask player-limits. P-1001 is active, so the offer can go ahead.\n\n**Checks**\n- P-1001 may receive promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -224,12 +224,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:02:15.131Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "15e7d319-8180-41ec-a3b0-73a9e3a59aa1"
+          "id": "47796530-62b9-4020-abfe-7ce1f65c34f3"
         }
       ],
-      "id": "03be41cb-a686-4454-a56e-97e51cd5bd44"
+      "id": "fa53f564-daa1-4065-b65a-b2eca1c92975"
     },
     {
       "name": "3. Eligibility · P-1003 (self-excluded) → do not offer",
@@ -253,7 +253,7 @@
             "check"
           ]
         },
-        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 3.** P-1003 is self-excluded. `may_receive_promotions` is `false`, so this player is skipped. Promotions would not stop you; this check is the only thing that does.\n\n**Checks**\n- P-1003 is self-excluded\n- P-1003 must NOT receive promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -310,7 +310,7 @@
                 "check"
               ]
             },
-            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 3.** P-1003 is self-excluded. `may_receive_promotions` is `false`, so this player is skipped. Promotions would not stop you; this check is the only thing that does.\n\n**Checks**\n- P-1003 is self-excluded\n- P-1003 must NOT receive promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -339,12 +339,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:02:15.131Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "a2e5ac81-24c1-4324-bde5-c4901a759907"
+          "id": "2e4038f5-4ddf-49a8-ab35-7c4506228974"
         }
       ],
-      "id": "03ba863a-0a49-4fbd-9a41-b4ec6cbe5ea0"
+      "id": "515a95cb-a8c5-4ea8-b31a-7ce86ebe43a1"
     },
     {
       "name": "4. Eligibility · P-1005 (cool-off) → do not offer",
@@ -368,7 +368,7 @@
             "check"
           ]
         },
-        "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 4.** P-1005 is in cool-off, which gets the same treatment as self-exclusion: skipped.\n\n**Checks**\n- P-1005 cool-off blocks promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -423,7 +423,7 @@
                 "check"
               ]
             },
-            "description": "Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 4.** P-1005 is in cool-off, which gets the same treatment as self-exclusion: skipped.\n\n**Checks**\n- P-1005 cool-off blocks promotions\n\n---\n\n**About this endpoint:** Check a player before any wager, offer, boost or claim. Pass `amount_minor` to include the daily-limit check. A player can be ineligible for a wager (`DAILY_WAGER_LIMIT`) yet still allowed promotions.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `invalid_product` | `product` is not `sportsbook` or `casino`. | yes | Fix the input: use `sportsbook` or `casino`. |\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1005\",\n  \"product\": \"sportsbook\",\n  \"amount_minor\": 1000\n}",
@@ -452,12 +452,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:02:15.131Z\"\n}",
+          "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "4bceb279-b56f-4c2c-9708-4820e8029c8e"
+          "id": "7fbdb5c4-2fcb-4834-8b78-e5655c729d7d"
         }
       ],
-      "id": "bb93b0a5-5d48-4f84-a65e-9ed1e4138f43"
+      "id": "9aba0dd5-f4b7-4f04-b5c8-c9ca4c78befa"
     },
     {
       "name": "5. Geo · P-1004 casino in NY → sportsbook only",
@@ -481,7 +481,7 @@
             "check"
           ]
         },
-        "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 5.** Casino is not available in NY, so P-1004 is offered sportsbook only.\n\n**Checks**\n- casino not offered in NY\n\n---\n\n**About this endpoint:** Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -536,7 +536,7 @@
                 "check"
               ]
             },
-            "description": "Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 5.** Casino is not available in NY, so P-1004 is offered sportsbook only.\n\n**Checks**\n- casino not offered in NY\n\n---\n\n**About this endpoint:** Check whether `product` is available where the player is located. `reason` is `PRODUCT_NOT_AVAILABLE_IN_STATE` when it is not.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1004\",\n  \"product\": \"casino\"\n}",
@@ -567,10 +567,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1004\",\n  \"state\": \"NY\",\n  \"product\": \"casino\",\n  \"allowed\": false,\n  \"reason\": \"PRODUCT_NOT_AVAILABLE_IN_STATE\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "68e524a0-0403-44ca-b023-8361fc124946"
+          "id": "ace21e2c-6078-47db-850e-77674e435b44"
         }
       ],
-      "id": "c8d57f04-3584-44ae-98a5-90451b6e276e"
+      "id": "77730188-c961-4e3a-94bb-d016bdfad5dd"
     },
     {
       "name": "6. Claim boost for eligible P-1001",
@@ -594,7 +594,7 @@
             "claim"
           ]
         },
-        "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. | yes | Look up the boost with promotions `GET /v1/boosts`, or create it first. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 6.** Claim the boost for the eligible player only.\n\n**Checks**\n- claimed\n\n---\n\n**About this endpoint:** Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. | yes | Look up the boost with promotions `GET /v1/boosts`, or create it first. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -649,7 +649,7 @@
                 "claim"
               ]
             },
-            "description": "Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. | yes | Look up the boost with promotions `GET /v1/boosts`, or create it first. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 6.** Claim the boost for the eligible player only.\n\n**Checks**\n- claimed\n\n---\n\n**About this endpoint:** Claim a boost for a player. **The caller must check eligibility and location first.** This endpoint does not. Claiming twice returns the existing claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `boost_not_found` | Unknown `boost_id`. | yes | Look up the boost with promotions `GET /v1/boosts`, or create it first. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"boost_id\": \"{{boost_id}}\",\n  \"player_id\": \"P-1001\"\n}",
@@ -678,12 +678,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T20:02:15.130Z\"\n}",
+          "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "633d6140-1f43-4c4a-bee7-06ee93f8b182"
+          "id": "c5232e67-2bb3-406f-ba86-6ccd92f46c90"
         }
       ],
-      "id": "622d4b43-4327-403a-ae17-ea95d4a32f0e"
+      "id": "0d42ed61-d8d2-4c8c-bd36-34dba36231ac"
     },
     {
       "name": "7. Place boosted bet (stake_minor = 1000)",
@@ -706,7 +706,7 @@
             "bets"
           ]
         },
-        "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 7.** Place the boosted bet in `stake_minor` (cents). The boost raises the payout and credits 10% of the stake as rewards.\n\n**Checks**\n- bet accepted\n- stake is integer cents\n- Rewards earned = 10% of stake\n\n---\n\n**About this endpoint:** Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
@@ -763,7 +763,7 @@
                 "bets"
               ]
             },
-            "description": "Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 7.** Place the boosted bet in `stake_minor` (cents). The boost raises the payout and credits 10% of the stake as rewards.\n\n**Checks**\n- bet accepted\n- stake is integer cents\n- Rewards earned = 10% of stake\n\n---\n\n**About this endpoint:** Place a bet. Send `stake_minor` in cents. To apply a boost, the player must have claimed it via promotions first.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `unsupported_field` | The request contains the removed v1 `stake` field. The error includes `\"replacement\": \"stake_minor\"`. | yes | Fix the input: rename the field to the one in `replacement` (e.g. `stake` to `stake_minor`, in cents). |\n| 400 | `invalid_amount` | `stake_minor` is not a positive integer. | yes | Fix the input: send a positive integer in cents (e.g. 1000), then retry. |\n| 403 | `player_not_eligible` | Player-limits rejected the wager. `reasons` lists why (e.g. `SELF_EXCLUDED`). | no | Stop: player protection blocked this. Do not retry, do not offer an alternative promotion, and report the `reasons`. |\n| 403 | `product_not_available` | The product is not available in the player's state. | no | Stop for this product: it is not available in the player's state. Another product may be. |\n| 404 | `selection_not_found` | Unknown `market_id` / `outcome_id`. | yes | Look up valid outcomes with markets `GET /v1/markets`, then retry. |\n| 409 | `boost_not_claimed` | `boost_id` given but the player has not claimed it. | yes | Check eligibility, claim the boost with promotions `POST /v1/boosts/claim`, then retry the bet. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}",
@@ -792,12 +792,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:02:15.131Z\"\n}",
+          "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "ca36971f-4580-40dc-a462-e1a013f92119"
+          "id": "738b7bd0-9def-4991-b199-bfe23e06cf50"
         }
       ],
-      "id": "7b334b73-c10f-4c84-9961-21b6e62d1af8"
+      "id": "161f2f6e-7230-4b71-8a0a-5ff3e7b6d2d4"
     },
     {
       "name": "8. END STATE · no protected player holds a claim",
@@ -828,7 +828,7 @@
             }
           ]
         },
-        "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 8.** The end-state check. Every call above can return 200 and the campaign can still be wrong, so this verifies what is actually true afterwards: no protected player holds a claim.\n\n**Checks**\n- END STATE: no claim for self-excluded P-1003\n- END STATE: no claim for cool-off P-1005\n\n---\n\n**About this endpoint:** List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "auth": {
           "type": "bearer",
           "bearer": [
@@ -883,7 +883,7 @@
                 }
               ]
             },
-            "description": "List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 8.** The end-state check. Every call above can return 200 and the campaign can still be wrong, so this verifies what is actually true afterwards: no protected player holds a claim.\n\n**Checks**\n- END STATE: no claim for self-excluded P-1003\n- END STATE: no claim for cool-off P-1005\n\n---\n\n**About this endpoint:** List claims, optionally for one `boost_id`. Use it to verify the end state after a campaign: no protected player should hold a claim.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "auth": {
               "type": "bearer",
               "bearer": [
@@ -903,12 +903,12 @@
               "value": "application/json"
             }
           ],
-          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T20:02:15.130Z\"\n    }\n  ]\n}",
+          "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T20:34:34.235Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "26554d98-d750-4203-a8a1-3985ee6d2ee6"
+          "id": "ca7260ad-7227-4fde-bc22-c0c2af89621f"
         }
       ],
-      "id": "91552684-dbac-4290-b52f-b14bd024b26f"
+      "id": "d80edb73-fe84-4deb-83e8-39943b6affb0"
     },
     {
       "name": "9. END STATE · Rewards credited to P-1001",
@@ -932,7 +932,7 @@
             "balance"
           ]
         },
-        "description": "Get a player's current balances.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+        "description": "**Step 9.** The rewards actually landed in the wallet.\n\n**Checks**\n- Rewards credited\n\n---\n\n**About this endpoint:** Get a player's current balances.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
         "body": {
           "mode": "raw",
           "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -987,7 +987,7 @@
                 "balance"
               ]
             },
-            "description": "Get a player's current balances.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
+            "description": "**Step 9.** The rewards actually landed in the wallet.\n\n**Checks**\n- Rewards credited\n\n---\n\n**About this endpoint:** Get a player's current balances.\n\n**Errors** (with what a client or agent should do)\n\n| Status | `error` | When | Recoverable | What to do |\n|---|---|---|---|---|\n| 404 | `player_not_found` | Unknown `player_id`. | no | Stop: the player ID is wrong. Do not guess another ID. |\n| 400 | `missing_fields` | A required field is missing | yes | Fix the input: add the fields listed in `fields`, then retry. |\n| 401 | `unauthorized` | Missing key, or another API's key | yes | Re-authenticate: send this API's own key (as a Passport reference). Do not try other APIs' keys. |\n| 401 | `unresolved_reference` | A Passport reference skipped the proxy | yes | Route the call through the Passport Secure Access Proxy (check `HTTPS_PROXY` and `passport whoami`), then retry. |",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"player_id\": \"P-1001\"\n}",
@@ -1018,10 +1018,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1001\",\n  \"cash_minor\": 25000,\n  \"bonus_minor\": 0,\n  \"rewards_minor\": 1200\n}",
           "_postman_previewlanguage": "json",
-          "id": "1eae8d86-66b9-4f93-909d-2cf62f0a9377"
+          "id": "b2ab3c5e-4a9f-4815-be5a-b7fa22e7da7e"
         }
       ],
-      "id": "95b62b01-f2b2-4d0d-b829-cb93ab25f08e"
+      "id": "259296c8-4e11-4056-8b4d-956580357634"
     }
   ],
   "variable": [

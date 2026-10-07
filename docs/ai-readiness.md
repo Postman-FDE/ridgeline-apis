@@ -19,7 +19,7 @@ Gate: every item must score at least **75**. Regenerate with `npm run ai-readine
 | collection | player-limits | **85** | Excellent | Simple | high |
 | collection | promotions | **85** | Excellent | Simple | high |
 | collection | sportsbook-app-contract | **80** | Excellent | Simple | high |
-| collection | test-suite | **80** | Excellent | Simple | medium |
+| collection | test-suite | **85** | Excellent | Simple | high |
 | collection | wallet | **85** | Excellent | Simple | high |
 
 ## What the scorer recommends (deduplicated, verbatim from the CLI)
