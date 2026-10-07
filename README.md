@@ -35,13 +35,13 @@ postman collection run <collection.json> -e <env.json>
 
 It didn't go perfectly, and the rough edges are a good picture of what this looks like in practice.
 
-- **`postman init` ran as a guest** and bound a throwaway workspace, because the stored CLI session had expired. `connect-git` failed with a 401 and said so. One `postman login` in a browser fixed it, and `connect-git` rebound the repo to the real workspace.
-- **`connect-git` needs a git remote.** The folder wasn't a repo yet. That's reasonable, since the binding is "this repo backs that workspace", but it meant creating a private GitHub repo before Postman would accept the link.
-- **Lint found 17 warnings in my generated files.** 15 were the governance rule that every operation should document a `5xx` response. The other 2 were a non-standard field I'd put in the environments. Fixed at the generator, re-ran, 0 warnings.
-- **`diff` caught a bug I'd never have spotted in the app.** The cloud rewrites `/` and `:` in request names, so `POST /v1/bets` came back as `POST -v1-bets`. Every push would have removed and re-added those requests. The diff showed it as a wall of `+`/`-` lines on the second push, so the generator now avoids those characters.
-- **Push writes cloud IDs back into the local files.** I changed the generator to keep them across rebuilds, so a push updates in place instead of churning IDs.
-- **An update replaces what's inside a collection.** "Never deletes" means whole entities. When the request names changed, the second push removed the old requests from inside each collection and added the new ones, which is correct, but it surprised me.
-- **One loose end:** after a clean push, `diff` still reports a few collections and the Passport environment as "modified" with no field-level detail. Re-pushing doesn't change anything. I haven't tracked down which field the cloud normalizes, so treat a "modified" on those as noise for now.
+- `postman init` ran as a guest and bound a throwaway workspace, because the stored CLI session had expired. `connect-git` failed with a 401 and said so. One `postman login` in a browser fixed it, and `connect-git` rebound the repo to the real workspace.
+- `connect-git` needs a git remote. The folder wasn't a repo yet. That's reasonable, since the binding is "this repo backs that workspace", but it meant creating a private GitHub repo before Postman would accept the link.
+- Lint found 17 warnings in my generated files. 15 were the governance rule that every operation should document a `5xx` response. The other 2 were a non-standard field I'd put in the environments. Fixed at the generator, re-ran, 0 warnings.
+- `diff` caught a bug I'd never have spotted in the app. The cloud rewrites `/` and `:` in request names, so `POST /v1/bets` came back as `POST -v1-bets`. Every push would have removed and re-added those requests. The diff showed it as a wall of `+`/`-` lines on the second push, so the generator now avoids those characters.
+- Push writes cloud IDs back into the local files. I changed the generator to keep them across rebuilds, so a push updates in place instead of churning IDs.
+- An update replaces what's inside a collection. "Never deletes" means whole entities. When the request names changed, the second push removed the old requests from inside each collection and added the new ones, which is correct, but it surprised me.
+- One loose end: after a clean push, `diff` still reports a few collections and the Passport environment as "modified" with no field-level detail. Re-pushing doesn't change anything. I haven't tracked down which field the cloud normalizes, so treat a "modified" on those as noise for now.
 
 ### The tests
 
@@ -103,7 +103,7 @@ The specs are served at `/specs/*` and the collections at `/postman/*` on the de
 | markets | Team Trading | `GET /markets/v1/events`, `GET /markets/v1/markets` | `RIDGELINE_MARKETS_KEY` |
 | wallet | Team Payments | `POST /wallet/v1/wallet/balance`, `POST /wallet/v1/wallet/rewards/credit` | `RIDGELINE_WALLET_KEY` |
 | promotions | Team Promotions | `GET/POST /promotions/v1/boosts`, `POST …/boosts/claim`, `GET …/boosts/claims` | `RIDGELINE_PROMOTIONS_KEY` |
-| **player-limits** | **Team Responsible Gaming** | `POST /player-limits/v1/eligibility/check`, `POST /player-limits/v1/limits` | `RIDGELINE_PLAYER_LIMITS_KEY` |
+| player-limits | Team Responsible Gaming | `POST /player-limits/v1/eligibility/check`, `POST /player-limits/v1/limits` | `RIDGELINE_PLAYER_LIMITS_KEY` |
 | bets (v2) | Team Bet Platform | `POST /bets/v1/bets`, `GET /bets/v1/bets` | `RIDGELINE_BETS_KEY` |
 | geo-compliance | Team Compliance | `POST /geo-compliance/v1/location/check` | `RIDGELINE_GEO_COMPLIANCE_KEY` |
 | admin | (sandbox ops) | `POST /admin/v1/reset`, `GET /admin/v1/status` | not for demos |
@@ -153,7 +153,7 @@ If you'd rather not use the CLI, `npm run postman:push` does the same through th
 
 1. Import the GitHub repo in Vercel (the framework is set in `vercel.json`), or run `vercel link && vercel --prod`.
 2. Set the `API_KEY_*` environment variables as *Sensitive*. `scripts/vercel-env.sh` pushes them from `.env.local`.
-3. Add **Upstash for Redis** (or Vercel KV) from the Marketplace, so state survives between serverless calls. `/healthz` reports `"store":"redis"` when it's connected.
+3. Add Upstash for Redis (or Vercel KV) from the Marketplace, so state survives between serverless calls. `/healthz` reports `"store":"redis"` when it's connected.
 4. `SANDBOX_HOST=<your-domain> npm run build:postman`, push, redeploy, then `SANDBOX_BASE_URL=https://<your-domain> npm run smoke`.
 
 Use the stable production domain, not preview URLs, because Passport endpoints are registered against the hostname. `vercel.json` sets `no-store` and `noindex` on every API route.
