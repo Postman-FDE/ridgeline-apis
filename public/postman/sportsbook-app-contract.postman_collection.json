@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "e89878a7-be5b-4dc1-a42f-0f1687ed5d2b",
+    "_postman_id": "f1994c40-15df-4bde-910a-0fdb9983d9d8",
     "name": "Ridgeline · sportsbook-app consumer contract",
     "description": "A **consumer-driven contract**: the assertions the **sportsbook-app** team (a consumer of bets and player-limits) depends on. The producer's own tests can all pass while a change breaks a consumer; these catch that.\n\n| Request | Protects |\n|---|---|\n| bets · response shape | The fields the app renders (`bet_id`, `status`, `stake_minor`, `potential_payout_minor`, ...) validated against JSON Schema |\n| bets · legacy `stake` rejected | That an old client sending `stake` fails loudly with a named replacement, instead of being silently accepted |\n| player-limits · offer gating | That `may_receive_promotions` is present, because the app hides offers on it |\n\n**Owner:** sportsbook-app team. **Run on every change** to bets or player-limits, in CI:\n\n```bash\npostman collection run public/postman/sportsbook-app-contract.postman_collection.json -e <environment>\n```\n\n\n## Environments\n\n| Environment | Use it for |\n|---|---|\n| **Ridgeline Sandbox · Mock** | Trying requests with no keys. The public mock answers every endpoint with its saved example response (no business logic) |\n| **Ridgeline Sandbox · Passport** | The real API. Keys are Passport references (`{{vault:RIDGELINE_*_KEY}}`), resolved by the Passport proxy |\n| **Ridgeline Sandbox · Local (no keys)** | `npm run local` on `http://localhost:4100`. Paste an owner key into the *current* value only |\n",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -113,10 +113,10 @@
           ],
           "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "bf27749b-560e-4355-8ebd-8a2a6fc7534c"
+          "id": "f6cd20e7-0538-46a7-a06a-a332201160ee"
         }
       ],
-      "id": "4b9fff70-a2e4-42f5-a0d4-7311de247820"
+      "id": "3f7c9df9-b988-40e0-8b8c-67cfc75fd6da"
     },
     {
       "name": "2. bets · legacy `stake` is rejected loudly",
@@ -225,10 +225,10 @@
           ],
           "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "25730b24-1392-4781-a991-e56d3c2ceb2c"
+          "id": "98d3af16-1a1b-4c78-b3f2-049e004056a3"
         }
       ],
-      "id": "ec91adf5-eed9-4da0-8672-9ec50942c43e"
+      "id": "3eb1b5da-2341-47a6-89cf-77f5c06c1957"
     },
     {
       "name": "3. player-limits · fields the app gates offers on",
@@ -339,10 +339,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T20:34:34.235Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "7029530e-634f-4c85-9a6c-ea5a91b96904"
+          "id": "0d2cf966-e5af-4f4d-9bca-88a608fd1741"
         }
       ],
-      "id": "86c0cb71-6b4a-411a-b4af-93c1563463e9"
+      "id": "c156c4e7-924a-4eb9-94f2-fc8a9b466fc8"
     }
   ]
 }
