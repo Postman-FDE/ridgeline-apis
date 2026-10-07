@@ -1,27 +1,93 @@
 # Ridgeline API Sandbox
 
-Six small HTTP APIs for a fictional sportsbook and casino, built with Next.js for Vercel. Each API has its own owner, its own OpenAPI spec and its own bearer key. That makes it a realistic target for demos of API discovery (Postman API Catalog), contract testing, and credential governance for AI agents (Postman Passport).
+Six small HTTP APIs for a fictional sportsbook and casino, built with Next.js and deployable to Vercel. Each API has its own owner, its own OpenAPI spec and its own bearer key. I built it as a realistic target for demos of API discovery (Postman API Catalog), contract testing, and credential governance for AI agents (Postman Passport).
 
 > Ridgeline is a fictional company. All players, markets and keys are sandbox data.
 
+I built almost all of this from a terminal, with Claude Code doing the typing and the Postman CLI doing everything Postman. I never opened the Postman app to create a collection, write a test, or upload a spec. That's the part worth reading first, so it comes first.
+
+## Headless Postman, driven from Claude Code
+
+"Headless" here means the Postman CLI (1.70) running against plain files in this repo. The workspace is just where those files get published. The specs, collections and environments live in git like any other code, and the CLI lints them, diffs them against the cloud workspace, pushes them, and runs the tests.
+
+This is the sequence Claude Code ran to set it up:
+
+```bash
+npm install -g postman-cli@latest        # 1.29 -> 1.70; the git-native workspace commands are new
+postman init --yes                       # writes .postman/resources.yaml, adds Postman skills + AGENTS.md guidance
+gh repo create ... --private --push      # connect-git needs an `origin` remote
+postman workspace connect-git <workspace-id>
+postman workspace lint                   # governance rules + schema checks, locally
+postman workspace diff                   # what would change in the cloud, read-only
+postman workspace push --yes             # create/update only, never deletes
+postman collection run <collection.json> -e <env.json>
 ```
-ridgeline-apis/
-├── app/                     Next.js App Router
-│   ├── page.tsx             Docs landing page (generated from lib/catalog.mjs)
-│   ├── [service]/[...path]/ Every API: /<service>/v1/...  (exact paths, so Passport grants match)
-│   └── healthz/             Health + which state store is active
-├── lib/
-│   ├── catalog.mjs          Single source of truth: services, owners, endpoints, schemas, examples
-│   └── api/                 Request → Response core, auth, services, seed data, state store
-├── public/specs/            OpenAPI 3.0 per API (+ history/bets.v1), served at /specs/*
-├── public/postman/          Collections + environments, served at /postman/*
-├── passport/                Vault seeding, endpoint map, registration script, daemon allowlist
-├── demo/                    Local-only demo assets (excluded from the Vercel build)
-│   ├── bet-slip/            Repo for the coding-agent demo (TICKET.md + planted traps)
-│   └── agent/               Astropods agent "ridgeline-boost-ops"
-├── scripts/                 keys, smoke, build:postman, demo:env, grep, reset, vercel-env
-└── vercel.json
+
+`.postman/resources.yaml` is the whole binding. It lists the 7 specs, 9 collections and 2 environments by path and names the workspace they belong to. Those files are generated from one source (`lib/catalog.mjs` plus `lib/docs.mjs`) by `npm run build:postman`, with example responses captured by running the real handlers in-process. So the docs, the saved examples and the code can't drift apart without the next build catching it.
+
+### What actually happened along the way
+
+It didn't go perfectly, and the rough edges are a good picture of what this looks like in practice.
+
+- **`postman init` ran as a guest** and bound a throwaway workspace, because the stored CLI session had expired. `connect-git` failed with a 401 and said so. One `postman login` in a browser fixed it, and `connect-git` rebound the repo to the real workspace.
+- **`connect-git` needs a git remote.** The folder wasn't a repo yet. That's reasonable, since the binding is "this repo backs that workspace", but it meant creating a private GitHub repo before Postman would accept the link.
+- **Lint found 17 warnings in my generated files.** 15 were the governance rule that every operation should document a `5xx` response. The other 2 were a non-standard field I'd put in the environments. Fixed at the generator, re-ran, 0 warnings.
+- **`diff` caught a bug I'd never have spotted in the app.** The cloud rewrites `/` and `:` in request names, so `POST /v1/bets` came back as `POST -v1-bets`. Every push would have removed and re-added those requests. The diff showed it as a wall of `+`/`-` lines on the second push, so the generator now avoids those characters.
+- **Push writes cloud IDs back into the local files.** I changed the generator to keep them across rebuilds, so a push updates in place instead of churning IDs.
+- **One loose end:** after a clean push, `diff` still reports a few collections and the Passport environment as "modified" with no field-level detail. Re-pushing doesn't change anything. I haven't tracked down which field the cloud normalizes, so treat a "modified" on those as noise for now.
+
+### The tests
+
+Claude Code wrote the tests into the generator, so they're regenerated with the collections rather than hand-edited in the app.
+
+| Collection | Requests | Assertions | What it checks |
+|---|---|---|---|
+| Ridgeline · Test Suite | 56 | 230 | Auth on every API (no key, wrong API's key, unresolved Passport reference, own key), functional behavior, business rules, negative cases |
+| Championship Rewards Boost (E2E) | 9 | 13 | The full flow, ending with an end-state check that no self-excluded or cool-off player holds a claim |
+| sportsbook-app consumer contract | 3 | 6 | The response shape a consumer relies on, and that the removed `stake` field fails loudly |
+| One collection per API (6) | 13 | 43 | Status, response time, content type, and the documented response schema |
+
+That's 81 requests and 292 assertions, all passing against a local server. A few of the business-rule checks I care about most:
+
+- P-1003 is self-excluded, so `may_receive_promotions` must be `false`.
+- A player over their daily limit is blocked from wagering but can still get promotions.
+- Casino isn't available in NY.
+- Replaying a rewards credit with the same idempotency key doesn't credit twice.
+- A boosted bet pays `1000 + 770 × 1.25 = 1963`.
+
+Run them all:
+
+```bash
+npm run local -- --no-smoke          # or npm run dev
+npm run test:postman                 # every collection, via `postman collection run`
+npm run test:postman -- test-suite   # just one
+SANDBOX_BASE_URL=https://<host> npm run test:postman
 ```
+
+`test:postman` builds a temporary environment from your `.env.local` keys, runs each collection with the Postman CLI, and deletes the file afterwards. The raw keys never land in a collection or a committed environment.
+
+### Why this matters if your team uses Claude Code
+
+Any agent can call an API. What changes with the CLI is that the agent's Postman work comes out as files and commands a teammate can review and rerun, the same artifacts a person on the team would have produced.
+
+- **Changes arrive as a diff in a PR.** When Claude Code adds a test or fixes a spec, you review it in the pull request like any other change. `postman workspace diff` shows exactly what will change in the cloud before anything is pushed.
+- **Governance runs before anything is published.** `postman workspace lint` applies the workspace's governance rules locally. The `5xx` warnings above were caught and fixed before they reached the workspace or the API Catalog.
+- **Tests travel with the code.** The collections are in the repo, so `npm run test:postman` (or the same command in CI) runs the identical suite on any machine, and the agent can run it to check its own work before it says it's done.
+- **The agent works in the same loop as everyone else.** Every step above is a command a developer can run by hand. Nothing depends on the agent, on a GUI session, or on someone remembering to click "sync".
+- **`postman init` gives the agent context.** It installs Postman skills under `postman/skills/` and adds guidance to `AGENTS.md`, so the next coding agent in this repo knows how to discover, mock and test APIs here without being told.
+
+The one thing I'd flag: `push` treats local files as the source of truth and overwrites cloud copies. The default strategy only creates and updates, and `--push-strategy force-sync` also deletes, so keep that flag out of anything an agent runs unattended.
+
+## Documentation
+
+Every API is documented in its OpenAPI spec and in its Postman collection, generated from `lib/docs.mjs`:
+
+- An overview per API: what it's for, the owner, its consumers, and its rules. For example, promotions doesn't check eligibility, so callers must.
+- Authentication with Passport references, and shared conventions (integer cents, exact paths, error shape).
+- A description for every operation, with an error table and an example for each documented error.
+- Descriptions on request and response fields.
+
+The specs are served at `/specs/*` and the collections at `/postman/*` on the deployed site, and both are pushed to the workspace.
 
 ## APIs
 
@@ -37,87 +103,57 @@ ridgeline-apis/
 
 **Sandbox players:** P-1001 NJ active · P-1002 PA near its daily limit · **P-1003 MI self-excluded** · P-1004 NY (no casino) · **P-1005 NJ cool-off**.
 
-**Auth:** `Authorization: Bearer <that API's key>`. The API rejects:
-- a missing key,
-- another API's key,
-- an **unresolved Passport reference** (`401 unresolved_reference`).
+**Auth:** `Authorization: Bearer <that API's key>`. Each API rejects a missing key, another API's key, and an unresolved Passport reference (`401 unresolved_reference`). Every call logs one JSON line with a key fingerprint, never the key.
 
-Each call logs one JSON line with a key fingerprint, never the key itself.
+```
+ridgeline-apis/
+├── .postman/resources.yaml  Binds the specs, collections and environments to the Postman workspace
+├── app/                     Next.js App Router: docs page, /<service>/v1/... routes, /healthz
+├── lib/
+│   ├── catalog.mjs          Services, owners, endpoints, schemas, examples
+│   ├── docs.mjs             Documentation merged into specs and collections
+│   └── api/                 Request → Response core, auth, services, seed data, state store
+├── public/specs/            OpenAPI 3.0 per API (+ history/bets.v1)
+├── public/postman/          Collections (incl. the test suite) + environments
+├── postman/skills/          Postman skills installed by `postman init`
+├── passport/                Vault seeding, endpoint map, registration script, daemon allowlist
+├── demo/                    Local-only demo assets (excluded from the Vercel build)
+└── scripts/                 local, keys, smoke, build:postman, test:postman, demo:env, grep, reset, vercel-env
+```
 
-## Run locally (one command)
+## Run locally
 
 ```bash
-npm run local               # installs deps, creates .env.local keys, writes demo env files, starts next dev on :4100, runs the smoke test
-npm run local -- --prod     # same, but production build + next start (closest to Vercel)
+npm run local               # deps, .env.local keys, demo env files, next dev on :4100, smoke test
+npm run local -- --prod     # production build + next start (closest to Vercel)
 npm run local -- --port 5000 | --no-smoke | --fresh-keys
 ```
-Ctrl+C stops it. Passport doesn't intercept `localhost`, so the Passport half of the demo needs the Vercel deployment. Everything else works locally.
 
-## Local development (manual)
+Passport doesn't intercept `localhost`, so the Passport half of the demo needs the Vercel deployment. Everything else works locally.
+
+## Keep the workspace in sync
 
 ```bash
-npm install
-npm run keys > .env.local      # a fresh set of defined keys: the real secrets
-npm run dev                    # http://localhost:4100
-npm run smoke                  # 15 checks against the running app
-npm run build:postman          # regenerate specs + collections after editing lib/catalog.mjs
+SANDBOX_HOST=<host> npm run build:postman   # after editing lib/catalog.mjs or lib/docs.mjs
+postman workspace lint
+postman workspace diff
+postman workspace push --yes
 ```
+
+If you'd rather not use the CLI, `npm run postman:push` does the same through the Postman API with a `POSTMAN_API_KEY`.
 
 ## Deploy to Vercel
 
-1. **Push** this folder to a Git repo and import it in Vercel. Framework: Next.js, already set in `vercel.json`.
-   Or deploy from the CLI: `npm i -g vercel && vercel link && vercel --prod`.
-2. **Environment variables** (Project → Settings → Environment Variables), all marked *Sensitive*:
-   `API_KEY_MARKETS`, `API_KEY_WALLET`, `API_KEY_PROMOTIONS`, `API_KEY_PLAYER_LIMITS`, `API_KEY_BETS`, `API_KEY_GEO_COMPLIANCE`, `API_KEY_ADMIN`.
-   Or run `scripts/vercel-env.sh`, which pushes the values from `.env.local`.
-3. **Shared state** (recommended): add **Upstash for Redis** (or Vercel KV) from the Vercel Marketplace and connect it to the project. It injects `KV_REST_API_URL` / `KV_REST_API_TOKEN`.
-   Without it, state lives in function memory and can reset between calls. `/healthz` reports `"store":"redis"` when it's connected.
-4. **Regenerate the downloads** with your real host, then commit and redeploy:
-   ```bash
-   SANDBOX_HOST=your-project.vercel.app npm run build:postman
-   ```
-5. **Verify:** `SANDBOX_BASE_URL=https://your-project.vercel.app npm run smoke`.
+1. Import the GitHub repo in Vercel (the framework is set in `vercel.json`), or run `vercel link && vercel --prod`.
+2. Set the `API_KEY_*` environment variables as *Sensitive*. `scripts/vercel-env.sh` pushes them from `.env.local`.
+3. Add **Upstash for Redis** (or Vercel KV) from the Marketplace, so state survives between serverless calls. `/healthz` reports `"store":"redis"` when it's connected.
+4. `SANDBOX_HOST=<your-domain> npm run build:postman`, push, redeploy, then `SANDBOX_BASE_URL=https://<your-domain> npm run smoke`.
 
-Use a **stable domain** (the production `*.vercel.app` alias or a custom domain), not preview URLs. Passport endpoints are registered against the hostname.
+Use the stable production domain, not preview URLs, because Passport endpoints are registered against the hostname. `vercel.json` sets `no-store` and `noindex` on every API route.
 
-`vercel.json` sets `no-store` and `noindex` on every API route. The landing page also sets `robots: noindex`.
+## Passport and the demo
 
-## Postman workspace (API Catalog)
-
-**Headless:** push the specs, collections and environments with the Postman API. Re-runs update in place.
-```bash
-# .env.local: POSTMAN_API_KEY=PMAK-...   POSTMAN_WORKSPACE_ID=<id>
-npm run postman:push -- --dry-run
-npm run postman:push
-# or create the workspace too:  npm run postman:push -- --create "Ridgeline API Sandbox" --type personal
-```
-
-**Manual:**
-
-Import from `public/specs/` and `public/postman/` (or from `https://<host>/specs/...` and `/postman/...`):
-1. Import the six specs and the collections (decline auto-generating collections from the specs).
-   - For the bets spec, import `specs/history/bets.v1.openapi.json` first, then `bets.openapi.json` as a new version, so the history shows `stake` → `stake_minor`.
-2. Link each collection to its spec. Set the owners.
-3. Add a monitor on the player-limits collection.
-4. Register the six APIs in the **API Catalog**.
-5. Use **sportsbook-app-contract** as the consumer of bets.
-6. Use the **Ridgeline Sandbox · Passport** environment: `base_url` is your host, and every key is `{{vault:RIDGELINE_*_KEY}}`.
-
-## Passport
-
-See [`passport/README.md`](passport/README.md):
-- `passport/vault-seed.sh hashicorp|aws|gcp` stores the keys,
-- register the endpoints with `node passport/register.mjs --apply` (or import the specs),
-- request and approve access,
-- `passport whoami` shows the references.
-
-## Demo assets (local only)
-
-```bash
-SANDBOX_BASE_URL=https://your-project.vercel.app npm run demo:env   # writes bet-slip .env (raw keys) / .env.passport / transcript, and agent/.env
-npm run grep                                                         # "where are the keys right now?"
-npm run reset                                                        # back to the "before" state (+ resets sandbox state if API_KEY_ADMIN is set)
-```
-- `demo/bet-slip`: the coding-agent target. Run `git init && git add -A && git commit -m baseline` inside it once, so `npm run reset` can restore it.
-- `demo/agent`: the Astropods agent. See [`demo/agent/README.md`](demo/agent/README.md).
+- Passport setup: [`passport/README.md`](passport/README.md) (vault seeding, endpoint registration, `passport whoami`).
+- Demo assets: `npm run demo:env`, `npm run grep`, `npm run reset`. Run `git init` in `demo/bet-slip` once so the reset can restore it.
+- The Astropods agent: [`demo/agent/README.md`](demo/agent/README.md).
 - Stage script: [`docs/demo-runbook.md`](docs/demo-runbook.md).
