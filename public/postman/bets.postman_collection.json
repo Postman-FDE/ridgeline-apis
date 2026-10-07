@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "8e1c1cd5-d94a-450a-862f-769bb96ef739",
+    "_postman_id": "ddb939d5-f266-4aed-89a1-4833c79aa5d3",
     "name": "Ridgeline · Bets API",
     "description": "Bet placement. **v2 (2026-07): `stake` (decimal dollars) was removed and replaced by `stake_minor` (integer cents).** Requests containing `stake` are rejected. Bets re-checks eligibility and location at placement as a safety net; it does not replace checking before an offer.\n\n**Bet placement**, single or parlay, optionally with a claimed boost.\n\n**Owner:** Team Bet Platform · **Consumers:** bet-slip, sportsbook-app (contract tested)\n\n### v2 (2026-07): breaking change\n`stake` (decimal dollars) was **removed** and replaced by `stake_minor` (integer cents). Requests that still send `stake` are rejected with `400 unsupported_field` and a `replacement` hint. The v1 spec is kept in history for reference.\n\n### Safety nets\nAt placement, bets re-checks **geo-compliance** and **player-limits** and rejects with `403`. This is a backstop, not a substitute: callers must still check eligibility **before** showing an offer.\n\n### Payout math\n`potential_payout_minor = stake_minor + stake_minor × (decimal_odds − 1) × (1 + profit_boost_pct/100)`, rounded. Parlays multiply decimal odds.\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{bets_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_BETS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -95,10 +95,10 @@
           ],
           "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "9c7e3a3a-0df8-4573-a8ca-80b3ace26ebe"
+          "id": "5921bd86-5690-4331-b50b-fc654f3eaf7c"
         }
       ],
-      "id": "702efb77-6fb1-4c68-88d8-83e63c39b3eb"
+      "id": "95d54bd4-258b-46c5-afeb-38c8ea4c9d7b"
     },
     {
       "name": "List bets",
@@ -184,10 +184,10 @@
           ],
           "body": "{\n  \"bets\": [\n    {\n      \"bet_id\": \"BET-00003\",\n      \"player_id\": \"P-1001\",\n      \"status\": \"accepted\",\n      \"product\": \"sportsbook\",\n      \"selections\": [\n        {\n          \"market_id\": \"MKT-ML-001\",\n          \"outcome_id\": \"OUT-HAWKS\"\n        }\n      ],\n      \"stake_minor\": 1000,\n      \"potential_payout_minor\": 1770,\n      \"boost_id\": null,\n      \"rewards_earned_minor\": 0,\n      \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "fde22ce7-295d-4f95-895b-bfabad6d5f91"
+          "id": "d372871a-1263-4a40-a2cc-5dc6d8d06320"
         }
       ],
-      "id": "f3ec3ae3-a59b-4f0e-b0ce-25e58a89664f"
+      "id": "497c92db-7122-4ff4-a506-8682fd570b9d"
     }
   ],
   "auth": {

@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "a31c542c-42bb-4c27-8edd-f5dd18903550",
+    "_postman_id": "efddd063-c57f-4430-b377-02346dc050f3",
     "name": "Ridgeline · sportsbook-app consumer contract",
     "description": "Assertions owned by the **sportsbook-app** team (a consumer of bets and player-limits). Run in CI on every bets / player-limits change: `postman collection run <id> -e <env>`. A change that passes the producer's own tests but breaks these fails the build.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -113,10 +113,10 @@
           ],
           "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "13b6b078-5706-42db-8b63-b46bf3318898"
+          "id": "0c01ae45-5556-441a-922c-cb9ab94250d4"
         }
       ],
-      "id": "e2b87202-2a5c-4c74-93c8-4d994cd2b316"
+      "id": "1ba7ce02-8092-4257-b4fd-05ae4e99ad94"
     },
     {
       "name": "2. bets · legacy `stake` is rejected loudly",
@@ -225,10 +225,10 @@
           ],
           "body": "{\n  \"bet_id\": \"BET-00003\",\n  \"player_id\": \"P-1001\",\n  \"status\": \"accepted\",\n  \"product\": \"sportsbook\",\n  \"selections\": [\n    {\n      \"market_id\": \"MKT-ML-001\",\n      \"outcome_id\": \"OUT-HAWKS\"\n    }\n  ],\n  \"stake_minor\": 1000,\n  \"potential_payout_minor\": 1770,\n  \"boost_id\": null,\n  \"rewards_earned_minor\": 0,\n  \"placed_at\": \"2026-10-07T18:57:35.932Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "afe5df08-9b09-4583-96f1-f3301b04b86f"
+          "id": "d9bb0e7b-c436-4f0a-a6fc-c2f231dbd3be"
         }
       ],
-      "id": "283962cf-8fde-4192-99f9-d87cefa0fd7c"
+      "id": "a36b2fa3-1d4e-482d-83eb-d17986c8ae2f"
     },
     {
       "name": "3. player-limits · fields the app gates offers on",
@@ -339,10 +339,10 @@
           ],
           "body": "{\n  \"player_id\": \"P-1003\",\n  \"product\": \"sportsbook\",\n  \"eligible\": false,\n  \"reasons\": [\n    \"SELF_EXCLUDED\"\n  ],\n  \"may_receive_promotions\": false,\n  \"remaining_daily_wager_minor\": 50000,\n  \"checked_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "44b9c0c7-ad08-457a-8532-301f33d39046"
+          "id": "acf108aa-f588-4873-a0e3-5fa3719e70b1"
         }
       ],
-      "id": "ca26bddd-b6cc-48bd-8edd-f75152a3c658"
+      "id": "529f3fa4-e256-4cd1-9438-1d5798cd7d76"
     }
   ]
 }

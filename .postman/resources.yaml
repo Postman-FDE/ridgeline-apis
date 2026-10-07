@@ -9,6 +9,8 @@ cloudResources:
     ../public/postman/sportsbook-app-contract.postman_collection.json: 50798902-a8a0b91a-4cbe-4fc0-95ed-2eb41157781c
     ../public/postman/test-suite.postman_collection.json: 50798902-eb5c239b-b902-4f93-ac40-a0349679faac
     ../public/postman/wallet.postman_collection.json: 50798902-89042a2e-ba96-4aee-b63b-7341940b160f
+  documents:
+    ../postman/documents/WORKSPACE-README.md: 620e2572-2b06-4731-840a-0fb2e66acd4c
   environments:
     ../public/postman/local.postman_environment.json: 50798902-afb6720d-5aad-4aee-bad6-aebb739c4128
     ../public/postman/sandbox.postman_environment.json: 50798902-ffae1702-2d98-4cf9-88be-a8984cfbaa27
@@ -33,6 +35,8 @@ localResources:
     - ../public/postman/sportsbook-app-contract.postman_collection.json
     - ../public/postman/test-suite.postman_collection.json
     - ../public/postman/wallet.postman_collection.json
+  documents:
+    - ../postman/documents/WORKSPACE-README.md
   environments:
     - ../public/postman/local.postman_environment.json
     - ../public/postman/sandbox.postman_environment.json

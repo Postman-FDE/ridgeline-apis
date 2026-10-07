@@ -1,6 +1,6 @@
 {
   "info": {
-    "_postman_id": "82505fc2-18a8-4cc9-9b89-340729f1960c",
+    "_postman_id": "e5aa40a8-4491-4a7e-86cc-a88ab983d890",
     "name": "Ridgeline · Promotions API",
     "description": "Boosts and claims. **Promotions does not check responsible-gaming eligibility.** Callers MUST call player-limits `POST /v1/eligibility/check` (and honor `may_receive_promotions`) and geo-compliance before offering or claiming a boost.\n\n**Boosts** (profit boost + rewards back) and **claims**.\n\n**Owner:** Team Promotions · **Consumers:** bet-slip, boost-ops agent, CRM tooling\n\n> **Important:** promotions does **not** check responsible gaming or state availability. Before offering or claiming a boost, every caller must:\n> 1. call **player-limits** `POST /v1/eligibility/check`, and skip the player if `may_receive_promotions` is `false`;\n> 2. call **geo-compliance** `POST /v1/location/check` for each product the boost covers.\n\nA boost only affects a bet after the player has **claimed** it. Claims are idempotent per (boost, player).\n\n## Authentication\n\nSend `Authorization: Bearer <key>`. **Each API has its own key**, and a key for one API is rejected by the others.\n\nKeys are never handed out directly. Request access and you receive a **credential reference** such as `{{vault:RIDGELINE_BETS_KEY}}`. A secure access proxy (Postman Passport) swaps the reference for the real key at call time, so neither your code, your agent nor its logs ever hold the secret.\n\n| Response | Meaning |\n|---|---|\n| `401 unauthorized` | Missing key, or a key for a different API |\n| `401 unresolved_reference` | A `{{vault:...}}` reference reached the API unresolved: the call skipped the proxy |\n\n\n## Conventions\n\n- **Base URL:** `https://<host>/<api>`, e.g. `https://<host>/bets/v1/bets`. Paths are exact (no path parameters), so access grants can match method + host + path.\n- **Money:** every amount is an **integer in minor units (cents)**. `1000` = $10.00. Decimals are rejected.\n- **Products:** `sportsbook` or `casino`.\n- **Players:** sandbox players `P-1001` to `P-1005` (see each API's notes).\n- **Errors:** JSON `{ \"error\": \"<code>\", \"message\": \"<human readable>\" }`, plus extra fields where noted.\n- **Idempotency:** write endpoints that move value take an `idempotency_key` or are naturally idempotent (claims).\n\n*Ridgeline is a fictional company; all data is sandbox data.*\n\n## In this collection\n\nAuth is set once on the collection: Bearer `{{promotions_key}}`. In the **Ridgeline Sandbox · Passport** environment that variable is `{{vault:RIDGELINE_PROMOTIONS_KEY}}`, so the Passport Secure Access Proxy injects the real key. Every request has tests (status, response time, content type, and the documented schema) and a saved example response.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -76,10 +76,10 @@
           ],
           "body": "{\n  \"boosts\": []\n}",
           "_postman_previewlanguage": "json",
-          "id": "797df5fa-0709-4235-9bc5-9961dc79ece8"
+          "id": "1fad6c71-0a54-4bdf-a148-a516cfcd893e"
         }
       ],
-      "id": "5dd1527c-0876-4c11-bd37-0833b650deca"
+      "id": "c5e5dea4-9aec-402e-ba9e-b9a33959da79"
     },
     {
       "name": "Create a boost",
@@ -170,10 +170,10 @@
           ],
           "body": "{\n  \"boost_id\": \"BST-00001\",\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ],\n  \"status\": \"active\",\n  \"created_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "b5df1a5d-2e37-40b9-8f26-19a97241982f"
+          "id": "3960c012-ab81-4153-a527-a85ab1b61ff3"
         }
       ],
-      "id": "b187734b-a773-4c39-a660-5f0603328824"
+      "id": "be480b56-186c-4bce-a5b9-3ef7e063b907"
     },
     {
       "name": "Claim a boost for a player (caller must check eligibility first)",
@@ -265,10 +265,10 @@
           ],
           "body": "{\n  \"claim_id\": \"CLM-00002\",\n  \"boost_id\": \"BST-00001\",\n  \"player_id\": \"P-1001\",\n  \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n}",
           "_postman_previewlanguage": "json",
-          "id": "0c66bd52-552f-4ca1-900e-9d3b02ba572f"
+          "id": "4b10449e-dd1f-46c8-919f-075bb48ce9d9"
         }
       ],
-      "id": "4ca6bf34-ea7b-424b-b42b-69562817b2d8"
+      "id": "80ace58c-6b9c-4ac7-ab73-c26fcb63b10d"
     },
     {
       "name": "List claims for a boost",
@@ -356,10 +356,10 @@
           ],
           "body": "{\n  \"claims\": [\n    {\n      \"claim_id\": \"CLM-00002\",\n      \"boost_id\": \"BST-00001\",\n      \"player_id\": \"P-1001\",\n      \"claimed_at\": \"2026-10-07T18:57:35.931Z\"\n    }\n  ]\n}",
           "_postman_previewlanguage": "json",
-          "id": "70d12bf9-e6bc-482d-bb95-569bb8d0a68a"
+          "id": "838bc171-8f3a-4308-aff7-4fea0fdd27bd"
         }
       ],
-      "id": "64e03400-3c12-4174-89e3-e2f531b63b26"
+      "id": "f5b921ce-544c-4748-a1d6-c6fa13740858"
     }
   ],
   "auth": {
