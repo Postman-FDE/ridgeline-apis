@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The verify beat: run the owning teams' acceptance suite (Ridgeline · bet-slip acceptance (TKT-2481)) against
+# The verify beat: the phantom-endpoint check, then the owning teams' acceptance suite (Ridgeline · bet-slip acceptance (TKT-2481)) against
 # the agent's actual bet-slip, headless, with the Postman CLI. The agent's own tests stub fetch; this doesn't.
 #
 #   npm run demo:verify                 # whatever branch ~/ridgeline-demo/bet-slip has checked out
@@ -43,4 +43,8 @@ for _ in $(seq 1 50); do curl -s -o /dev/null "localhost:$SLIP_PORT" && break; s
 curl -s -o /dev/null "localhost:$SLIP_PORT" || { echo "bet-slip didn't start:"; cat "$TMP/slip.log"; exit 1; }
 echo "bet-slip running on :$SLIP_PORT"
 echo
+# 1. The phantom wheel: endpoints the agent's code calls that don't exist in their owner's spec.
+node scripts/phantom-check.mjs "$DEMO_DIR"
+echo
+# 2. The owning teams' acceptance suite, against the running bet-slip.
 SANDBOX_BASE_URL=$BASE SLIP_URL="http://localhost:$SLIP_PORT" VERBOSE=1 node scripts/postman-test.mjs bet-slip-acceptance

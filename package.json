@@ -9,6 +9,8 @@
   },
   "scripts": {
     "dev": "next dev -p 4100",
+    "dev:gateway": "RIDGELINE_GATEWAY=1 next dev -p 4100",
+    "dev:realistic": "RIDGELINE_GATEWAY=1 RIDGELINE_TERSE_ERRORS=1 next dev -p 4100",
     "build": "next build",
     "start": "next start -p 4100",
     "keys": "node scripts/keys.mjs",

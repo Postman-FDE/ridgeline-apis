@@ -5,6 +5,8 @@
 #   npm run local -- --prod       production build + next start (closest to Vercel)
 #   npm run local -- --port 5000  different port
 #   npm run local -- --no-smoke   skip the smoke test
+#   npm run local -- --gateway    gateway mode: APIs only, no docs page/specs/collections (the demo's before run)
+#   npm run local -- --terse-errors  errors return status text only, like most internal APIs
 #   npm run local -- --fresh-keys regenerate .env.local (new keys; re-seed your vault afterwards)
 #
 # First run it will: install deps, create .env.local with defined keys, and write the demo env files.
@@ -21,8 +23,10 @@ while [ $# -gt 0 ]; do
     --prod) MODE=prod ;;
     --port) PORT="$2"; shift ;;
     --no-smoke) SMOKE=0 ;;
+    --gateway) export RIDGELINE_GATEWAY=1 ;;
+    --terse-errors) export RIDGELINE_TERSE_ERRORS=1 ;;
     --fresh-keys) FRESH=1 ;;
-    -h|--help) sed -n '2,11p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,13p' "$0"; exit 0 ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
   shift

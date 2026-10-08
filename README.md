@@ -168,6 +168,7 @@ ridgeline-apis/
 npm run local               # deps, .env.local keys, demo env files, next dev on :4100, smoke test
 npm run local -- --prod     # production build + next start (closest to Vercel)
 npm run local -- --port 5000 | --no-smoke | --fresh-keys
+npm run local -- --gateway  # APIs only: no docs page, specs or collections (the demo's before run)
 ```
 
 Passport doesn't intercept `localhost`, so the Passport half of the demo needs the Vercel deployment. Everything else works locally.

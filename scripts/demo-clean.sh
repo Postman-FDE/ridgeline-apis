@@ -143,7 +143,16 @@ if [ -n "${API_KEY_ADMIN:-}" ] && curl -fsS -X POST "$BASE/admin/v1/reset" -H "A
 else
   warn "sandbox state not reset (needs API_KEY_ADMIN and a reachable $BASE)"
 fi
-curl -fsS "$BASE/healthz" >/dev/null 2>&1 && ok "$BASE/healthz is up" || warn "$BASE is not reachable. npm run local, or set SANDBOX_BASE_URL"
+curl -fsS "$BASE/healthz" >/dev/null 2>&1 && ok "$BASE/healthz is up" || warn "$BASE is not reachable. npm run local -- --gateway, or set SANDBOX_BASE_URL"
+# Gateway mode: the API host must not serve its own docs, or the before-run agent reads the specs off it
+# (a rehearsal run did, with node -e fetch) and the demo has no "before".
+if curl -fsS "$BASE/healthz" >/dev/null 2>&1; then
+  docs=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/specs/bets.openapi.json")
+  if [ "$docs" = 404 ]; then ok "gateway mode: $BASE serves APIs only (no docs page, specs or collections)"
+  elif [ "$MODE" = before ] && [ "${ALLOW_DOCS:-}" != 1 ]; then
+    die "$BASE serves its own specs (HTTP $docs): the agent will find them. Start the sandbox with npm run local -- --gateway (or use the api.<domain> alias on Vercel). ALLOW_DOCS=1 to skip"
+  else warn "$BASE serves its own specs (HTTP $docs). Fine for the after run; use gateway mode for the before run"; fi
+fi
 
 step "Ready: $MODE"
 if [ "$MODE" = before ]; then
