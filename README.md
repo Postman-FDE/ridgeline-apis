@@ -159,7 +159,7 @@ ridgeline-apis/
 ├── postman/skills/          Postman skills installed by `postman init`
 ├── passport/                Vault seeding, endpoint map, registration script, daemon allowlist
 ├── demo/                    Local-only demo assets (excluded from the Vercel build)
-└── scripts/                 local, keys, smoke, build:postman, test:postman, demo:env, grep, reset, vercel-env
+└── scripts/                 local, keys, smoke, build:postman, test:postman, demo:env, demo-clean, grep, vercel-env
 ```
 
 ## Run locally
@@ -195,6 +195,6 @@ Use the stable production domain, not preview URLs, because Passport endpoints a
 ## Passport and the demo
 
 - Passport setup: [`passport/README.md`](passport/README.md) (vault seeding, endpoint registration, `passport whoami`).
-- Demo assets: `npm run demo:env`, `npm run grep`, `npm run reset`. Run `git init` in `demo/bet-slip` once so the reset can restore it.
+- Demo assets: `npm run demo:env` writes the local key files. `npm run demo:before` builds a clean, isolated copy of `demo/bet-slip` at `~/ridgeline-demo/bet-slip` on a new branch and checks the traps are armed. `npm run demo:after` does the same with the Postman AGENTS.md and Passport references. `npm run grep` finds the raw keys.
 - The Astropods agent: [`demo/agent/README.md`](demo/agent/README.md).
 - Stage script: [`docs/demo-runbook.md`](docs/demo-runbook.md).

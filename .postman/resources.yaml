@@ -1,5 +1,6 @@
 cloudResources:
   collections:
+    ../public/postman/bet-slip-acceptance.postman_collection.json: 50798902-c892d3c4-499d-4d95-8b47-91705dbc813f
     ../public/postman/bets.postman_collection.json: 50798902-e8fe8a56-f330-4a06-bb49-bfa9790aa8d5
     ../public/postman/e2e-championship-boost.postman_collection.json: 50798902-8b80ec43-81cf-4523-a187-a16a094516f4
     ../public/postman/geo-compliance.postman_collection.json: 50798902-6030fbda-9232-4b7f-9f4d-db084c7946fb
@@ -29,6 +30,7 @@ cloudResources:
     ../public/specs/wallet.openapi.json: 3dc0b728-838d-4384-a7bc-47c5b6637c8f
 localResources:
   collections:
+    - ../public/postman/bet-slip-acceptance.postman_collection.json
     - ../public/postman/bets.postman_collection.json
     - ../public/postman/e2e-championship-boost.postman_collection.json
     - ../public/postman/geo-compliance.postman_collection.json

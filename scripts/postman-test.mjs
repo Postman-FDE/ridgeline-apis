@@ -35,13 +35,16 @@ try {
   for (const f of files) {
     const name = f.replace('.postman_collection.json', '');
     try {
-      const outText = execFileSync('postman', ['collection', 'run', root + 'public/postman/' + f, '-e', envFile], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      const extra = process.env.SLIP_URL ? ['--env-var', `slip_url=${process.env.SLIP_URL}`] : [];
+      const outText = execFileSync('postman', ['collection', 'run', root + 'public/postman/' + f, '-e', envFile, ...extra], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+      if (process.env.VERBOSE) console.log(outText);
       const line = outText.split('\n').find((l) => /^\|\s+assertions/.test(l)) ?? '';
       console.log(`PASS  ${name.padEnd(26)} ${line.replace(/[|\s]+/g, ' ').trim()}`);
     } catch (err) {
       failed++;
       const outText = String(err.stdout ?? '') + String(err.stderr ?? '');
       console.log(`FAIL  ${name}`);
+      if (process.env.VERBOSE) { console.log(String(err.stdout ?? '')); continue; }
       console.log(outText.split('\n').filter((l) => /Fail|AssertionError|Error/.test(l)).slice(0, 15).join('\n'));
     }
   }

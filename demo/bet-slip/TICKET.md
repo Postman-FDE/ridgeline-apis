@@ -10,3 +10,11 @@ Add a championship-night rewards boost to the bet slip:
 - The player can apply the boost and place the boosted bet from the slip.
 - Boosted bets must respect each player's limits.
 - Add tests.
+
+## Acceptance criteria
+- `POST /slip/quote` also takes `player_id`. The response keeps its current fields and adds `boost`:
+  `{ boost_id, products, boosted_payout_minor, rewards_back_minor }` when this player is offered the boost,
+  otherwise `null`.
+- `POST /slip/place` takes the quote fields plus an optional `boost_id`, places the bet, and returns the
+  placed bet.
+- QA will run the acceptance suite against a running bet-slip (`npm start`, port 4200) and the sandbox.

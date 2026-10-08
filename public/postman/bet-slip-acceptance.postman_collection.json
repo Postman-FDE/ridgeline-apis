@@ -1,0 +1,351 @@
+{
+  "info": {
+    "name": "Ridgeline · bet-slip acceptance (TKT-2481)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Acceptance suite for **TKT-2481**, the championship-night rewards boost on the bet slip.\n\n**Owner:** bet-slip QA · **Player-protection cases supplied by:** Team Responsible Gaming · **Contract cases supplied by:** Team Bet Platform\n\nThis suite tests the **bet-slip service itself**, running on `{{slip_url}}` (default `http://localhost:4200`), not the APIs behind it. A bet-slip's own unit tests stub `fetch`, so they can't see what it actually sends to bets, or whether it asks player-limits before showing an offer. This suite can.\n\n| Step | Proves |\n|---|---|\n| Setup | Team Promotions has launched the Championship Rewards Boost |\n| Quote P-1001 | An eligible player in NJ sees the boost |\n| Quote P-1003 / P-1005 | **Self-excluded and cool-off players never see it** (Team Responsible Gaming) |\n| Quote P-1004 | Casino is not offered in NY (Team Compliance) |\n| Place + ledger | The bet reaches bets as `stake_minor` integer cents (bets v2 removed `stake`) |\n| Place P-1003 | A self-excluded player cannot place a boosted bet |\n| End state | No protected player holds a claim |\n\n**Run it headless:**\n```bash\nnpm run demo:verify                      # starts the bet-slip from the run copy, runs this suite, stops it\npostman collection run <this-collection-id> -e <env> --env-var slip_url=http://localhost:4200\n```\nThe suite needs the sandbox keys for setup and ledger checks (`promotions_key`, `bets_key`). The bet-slip calls need none.",
+    "_postman_id": "81f8e7ef-22f5-4e98-bd5f-1af0f3387af9"
+  },
+  "item": [
+    {
+      "name": "Setup · Team Promotions launches the Championship Rewards Boost",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('boost launched', () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set('boost_id', pm.response.json().boost_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{promotions_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Done by Team Promotions (or the boost-ops agent) before the final. Not part of the bet-slip.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Championship Rewards Boost\",\n  \"market_id\": \"MKT-ML-001\",\n  \"profit_boost_pct\": 25,\n  \"rewards_back_pct\": 10,\n  \"products\": [\n    \"sportsbook\",\n    \"casino\"\n  ]\n}"
+        },
+        "url": "{{base_url}}/promotions/v1/boosts"
+      },
+      "id": "39fde269-a634-47b4-9367-96b102a20be4"
+    },
+    {
+      "name": "Quote · P-1001 (NJ, active) sees the boost",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('quote succeeds', () => pm.response.to.have.status(200));",
+              "pm.test('quote keeps its existing fields', () => pm.expect(r.potential_payout_minor).to.eql(1770));",
+              "pm.test('P-1001 is offered the boost', () => pm.expect(r.boost, 'boost').to.be.an('object'));",
+              "pm.test('boost payout: 1000 + 770 × 1.25 = 1963', () => pm.expect(r.boost && r.boost.boosted_payout_minor).to.eql(1963));",
+              "pm.test('rewards back: 10% of stake = 100', () => pm.expect(r.boost && r.boost.rewards_back_minor).to.eql(100));",
+              "if (r.boost && r.boost.boost_id) pm.collectionVariables.set('offered_boost_id', r.boost.boost_id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "The happy path.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000\n}"
+        },
+        "url": "{{slip_url}}/slip/quote"
+      },
+      "id": "5ececa28-81e5-40b2-80bc-606766958f4f"
+    },
+    {
+      "name": "Quote · P-1003 (self-excluded) is NOT offered the boost",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test(\"quote answers with boost: null for Self-excluded P-1003\", () => { pm.response.to.have.status(200); pm.expect(r).to.have.property(\"boost\"); });",
+              "pm.test(\"Self-excluded P-1003 is never offered the boost\", () => pm.expect(r && r.boost, \"the slip offered a boost: \" + JSON.stringify(r && r.boost)).to.not.be.ok);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "**Team Responsible Gaming.** A self-excluded player must never see a promotional offer, whatever the stake. player-limits is the only source of truth for this (`may_receive_promotions`).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1003\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000\n}"
+        },
+        "url": "{{slip_url}}/slip/quote"
+      },
+      "id": "a9d4908a-644c-45b5-8f03-326e6c9a5a61"
+    },
+    {
+      "name": "Quote · P-1005 (cool-off) is NOT offered the boost",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test(\"quote answers with boost: null for Cool-off P-1005\", () => { pm.response.to.have.status(200); pm.expect(r).to.have.property(\"boost\"); });",
+              "pm.test(\"Cool-off P-1005 is never offered the boost\", () => pm.expect(r && r.boost, \"the slip offered a boost: \" + JSON.stringify(r && r.boost)).to.not.be.ok);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "**Team Responsible Gaming.** Cool-off blocks promotions the same way self-exclusion does.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1005\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000\n}"
+        },
+        "url": "{{slip_url}}/slip/quote"
+      },
+      "id": "0097bf4b-de0c-4431-b534-bb80bd03f1cd"
+    },
+    {
+      "name": "Quote · P-1004 (NY) is offered sportsbook only",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const r = pm.response.json();",
+              "pm.test('P-1004 is offered the boost', () => pm.expect(r.boost, 'boost').to.be.an('object'));",
+              "pm.test('casino is not offered in NY', () => pm.expect((r.boost && r.boost.products) || ['casino']).to.not.include('casino'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "**Team Compliance.** Casino is only available in NJ, PA, MI and WV (geo-compliance).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1004\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000\n}"
+        },
+        "url": "{{slip_url}}/slip/quote"
+      },
+      "id": "84d0a21a-7f2c-458a-a207-fd7d32478bfe"
+    },
+    {
+      "name": "Ledger · P-1001 bets before",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set('bets_before', pm.response.json().bets.length);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bets_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "url": "{{base_url}}/bets/v1/bets?player_id=P-1001"
+      },
+      "id": "4ebf8c6c-766d-4e97-8ba5-fc18cce853bb"
+    },
+    {
+      "name": "Place · P-1001 boosted bet, $10.00",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('boosted bet placed', () => pm.expect(pm.response.code, pm.response.text().slice(0, 200)).to.be.within(200, 201));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "Places through the slip. The next step checks what actually reached bets.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1001\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{offered_boost_id}}\"\n}"
+        },
+        "url": "{{slip_url}}/slip/place"
+      },
+      "id": "9956e96a-5ed3-415f-8f36-0b9dc4c5062a"
+    },
+    {
+      "name": "Ledger · bets received stake_minor",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const bets = pm.response.json().bets;",
+              "const last = bets[bets.length - 1] || {};",
+              "pm.test('the slip placed exactly one bet', () => pm.expect(bets.length).to.eql(Number(pm.collectionVariables.get('bets_before')) + 1));",
+              "pm.test('bets received stake_minor 1000 (integer cents, bets v2)', () => pm.expect(last.stake_minor).to.eql(1000));",
+              "pm.test('the bet carries the boost', () => pm.expect(last.boost_id).to.eql(pm.collectionVariables.get('boost_id')));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bets_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "**Team Bet Platform.** bets v2 (2026-07) removed the decimal `stake` and rejects it with `400 unsupported_field`. A client that still sends `stake` places nothing.",
+        "url": "{{base_url}}/bets/v1/bets?player_id=P-1001"
+      },
+      "id": "6855d994-d22c-4721-b612-149ec687c4ba"
+    },
+    {
+      "name": "Place · P-1003 (self-excluded) is refused",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('self-excluded P-1003 cannot place a boosted bet', () => pm.expect(pm.response.code).to.be.within(400, 499));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "**Team Responsible Gaming.**",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"player_id\": \"P-1003\",\n  \"event_id\": \"EVT-FINAL-2026\",\n  \"market_id\": \"MKT-ML-001\",\n  \"outcome_id\": \"OUT-HAWKS\",\n  \"stake_minor\": 1000,\n  \"boost_id\": \"{{boost_id}}\"\n}"
+        },
+        "url": "{{slip_url}}/slip/place"
+      },
+      "id": "8a913fdc-4c3e-446b-acae-53197eed5a68"
+    },
+    {
+      "name": "END STATE · no protected player holds a claim",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ids = pm.response.json().claims.map((c) => c.player_id);",
+              "pm.test('END STATE: no claim for self-excluded P-1003', () => pm.expect(ids).to.not.include('P-1003'));",
+              "pm.test('END STATE: no claim for cool-off P-1005', () => pm.expect(ids).to.not.include('P-1005'));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{promotions_key}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "description": "",
+        "url": "{{base_url}}/promotions/v1/boosts/claims?boost_id={{boost_id}}"
+      },
+      "id": "f85c7daa-ae7d-45cf-a484-c4429897ef19"
+    }
+  ],
+  "variable": [
+    {
+      "key": "slip_url",
+      "value": "http://localhost:4200"
+    },
+    {
+      "key": "boost_id",
+      "value": ""
+    },
+    {
+      "key": "offered_boost_id",
+      "value": ""
+    },
+    {
+      "key": "bets_before",
+      "value": "0"
+    }
+  ]
+}
